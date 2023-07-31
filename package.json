@@ -1,0 +1,14 @@
+{
+  "name": "html-to-gif",
+  "version": "1.0.0",
+  "description": "A simple library to convert html to gif",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "author": "suyash-thakur",
+  "license": "MIT",
+  "dependencies": {
+   
+  }
+}
