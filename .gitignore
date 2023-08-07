@@ -1,3 +1,5 @@
 /node_modules
 /lib/ffmpeg.log
 .env
+http://localhost:3001/api/auth/login/google
+http://localhost:3000/login/google

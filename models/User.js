@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
+const { hash } = require('../util/hash');
 const uid = require('../util/uid');
+const AuthToken = require('./AuthToken');
 
 const userSchema = new mongoose.Schema({
     uid: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     active: {
         type: Boolean,
@@ -20,9 +22,18 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    signupMethod: {
+        type: String,
+        enum: ['email', 'google', 'facebook'],
+        default: 'email',
+        required: true
+    },
     password: {
         type: String,
-        required: true
     },
     currentPlan: {
         type: String,
@@ -37,18 +48,18 @@ const userSchema = new mongoose.Schema({
 });
 
 //before saving the user, hash the password and create uid
-userSchema.pre('save', function (next) {
+userSchema.pre('create', async function (next) {
     const user = this;
-    if (!user.isModified('password')) return next();
-    user.uid = uid();
+    user.uid = await uid();
+    console.log(user);
+    user.password = hash(user.password);
     next();
 });
 
-// Fetch only active users
-userSchema.pre('get', function (next) {
-    this.where({ active: true });
-    next();
-});
+userSchema.methods.logOut = async function () {
+    const user = this;
+    await AuthToken.update({ user: user.uid }, { active: false });
+};
 
 const User = mongoose.model('User', userSchema);
 
