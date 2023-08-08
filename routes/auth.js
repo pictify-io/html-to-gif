@@ -2,6 +2,7 @@ const axios = require('axios');
 const User = require('../models/User');
 const { isEmail, isPassword } = require('../util/validator');
 const { compare } = require('../util/hash');
+const uid = require('../util/uid');
 
 
 module.exports = async (fastify) => {
@@ -18,7 +19,8 @@ module.exports = async (fastify) => {
             return res.status(400).send({ message: 'Invalid name' });
         }
 
-        const user = await User.create({ email, password, name });
+        const userUid = await uid();
+        const user = await User.create({ email, password, name, uid: userUid });
         return res.loginCallback(user);
     }
 
@@ -73,7 +75,9 @@ module.exports = async (fastify) => {
             const { email, name } = data;
             user = await User.findOne({ email });
             if (!user) {
+                const userUid = await uid();
                 user = await User.create({
+                    uid: userUid,
                     email,
                     name,
                     signupMethod: 'google',
@@ -87,7 +91,7 @@ module.exports = async (fastify) => {
         if (!user) {
             return res.status(500).send({ message: 'Something went wrong' });
         }
-        return res.loginCallback(user);
+        return res.loginCallback({ user });
     }
 
     fastify.register(async (fastify) => {

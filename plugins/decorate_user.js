@@ -11,26 +11,26 @@ const parseCookie = (cookie) => {
     return cookieObj
 }
 
-const decorateUser = async (request, reply, done) => {
-    const { cookies } = request.headers;
-    if (!cookies) {
-        reply.send({ message: 'Invalid Request' }).status(401);
+const decorateUser = async (request, reply) => {
+    const { cookie } = request.headers;
+    if (!cookie) {
+        reply.code(401).send({ message: 'Invalid Request' })
     }
     const authTokens = parseCookie(request.headers.cookie);
 
     if (!authTokens || !authTokens['auth-token']) {
-        reply.send({ message: 'Invalid Request' }).status(401);
+        reply.code(401).send({ message: 'Invalid Request' })
+
     }
-    const authToken = await AuthToken.findOne({ uid: cookies['auth-token'] }).populate('user');
+    const authToken = await AuthToken.findOne({ uid: cookie['auth-token'] }).populate('user');
     if (!authToken) {
-        reply.send({ message: 'Invalid Request' }).status(401);
+        reply.code(401).send({ message: 'Invalid Request' })
     }
     if (!authToken.isValid()) {
-        reply.send({ message: 'Invalid Request' }).status(401);
+        reply.code(401).send({ message: 'Invalid Request' })
     }
     await authToken.refresh();
     request.user = authToken.user;
-    done();
 }
 
 module.exports = fp(async (fastify, opts) => {

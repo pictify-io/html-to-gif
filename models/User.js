@@ -6,7 +6,6 @@ const AuthToken = require('./AuthToken');
 const userSchema = new mongoose.Schema({
     uid: {
         type: String,
-        required: true,
         unique: true,
     },
     active: {

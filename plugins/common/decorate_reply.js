@@ -1,5 +1,6 @@
 const fp = require('fastify-plugin')
 const AuthToken = require('../../models/AuthToken');
+const uid = require('../../util/uid');
 
 const cookieOptions = {
     domain: process.env.NODE_ENV === 'production' ? 'https://www.example.com' : 'localhost',
@@ -12,7 +13,8 @@ const cookieOptions = {
 
 module.exports = fp(async (fastify, opts) => {
     fastify.decorateReply('loginCallback', async function ({ user, payload }) {
-        const authToken = new AuthToken({ user: user._id });
+        const userUid = await uid();
+        const authToken = new AuthToken({ user: user._id, uid: userUid });
         await authToken.save();
         this.setCookie('auth-token', authToken.uid, cookieOptions).code(200).send(payload)
     });

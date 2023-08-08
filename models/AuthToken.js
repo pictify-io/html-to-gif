@@ -4,7 +4,6 @@ const uid = require('../util/uid');
 const authTokenSchema = new mongoose.Schema({
     uid: {
         type: String,
-        required: true,
         unique: true
     },
     active: {
@@ -18,7 +17,7 @@ const authTokenSchema = new mongoose.Schema({
     },
     validTill: {
         type: Date,
-        default: Date.now + 1000 * 60 * 60 * 24 * 7 // 7 days
+        default: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 days
     },
     createdAt: {
         type: Date,

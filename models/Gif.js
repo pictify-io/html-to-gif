@@ -4,7 +4,6 @@ const uid = require('../util/uid');
 const gifSchema = new mongoose.Schema({
     uid: {
         type: String,
-        required: true,
         unique: true
     },
     active: {

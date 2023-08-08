@@ -4,7 +4,6 @@ const uid = require('../util/uid');
 const templateSchema = new mongoose.Schema({
     uid: {
         type: String,
-        required: true,
         unique: true
     },
     active: {
