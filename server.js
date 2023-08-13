@@ -11,7 +11,25 @@ db();
 const port = process.env.PORT || 3001;
 
 const fastify = require('fastify')({
-    logger: true
+    logger: false,
+});
+
+//Beautify logs
+fastify.addHook('onRequest', (request, reply, done) => {
+    console.log(`Request: ${request.method} ${request.url}`);
+    done();
+});
+
+fastify.addHook('onResponse', (request, reply, done) => {
+    console.log(`Response: ${request.method} ${request.url}`);
+    done();
+
+});
+
+fastify.addHook('onError', (request, reply, error, done) => {
+    console.log(`Error: ${request.method} ${request.url}`);
+    console.log(error);
+    done();
 });
 
 if (process.env.NODE_ENV !== 'production') {

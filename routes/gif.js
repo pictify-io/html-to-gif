@@ -1,4 +1,5 @@
-const createGif = require('../lib/index');
+const createGif = require('../lib/gif');
+const captureImages = require('../lib/image');
 const decorateUser = require('../plugins/decorate_user');
 const Gift = require('../models/Gif');
 
@@ -6,10 +7,9 @@ module.exports = async (fastify) => {
 
     const createGifHandler = async (req, res) => {
         const { user } = req;
-        const { html, url } = req.body;
+        // const { html, url } = req.body;
         const gif = await createGif({
-            html,
-            url
+
         });
 
         await Gif.create({
