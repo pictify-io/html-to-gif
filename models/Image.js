@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const uid = require('../util/uid');
 
-const gifSchema = new mongoose.Schema({
+const imageSchema = new mongoose.Schema({
     uid: {
         type: String,
         unique: true
@@ -27,12 +27,6 @@ const gifSchema = new mongoose.Schema({
     height: {
         type: Number,
     },
-    framesPerSecond: {
-        type: Number,
-    },
-    animationLength: {
-        type: Number,
-    },
     createdBy: {
         type: String,
         required: true,
@@ -44,18 +38,21 @@ const gifSchema = new mongoose.Schema({
     }
 });
 
-//before saving the gif, create uid
-gifSchema.pre('save', function (next) {
-    const gif = this;
-    gif.uid = uid();
+//before saving the image, create uid
+imageSchema.pre('save', async function (next) {
+    const image = this;
+    console.log('pre save');
+    image.uid = await uid();
+    console.log(image.uid);
     next();
-});
+}
+);
 
-gifSchema.pre('get', function (next) {
+imageSchema.pre('get', function (next) {
     this.where({ active: true });
     next();
 });
 
-const Gif = mongoose.model('Gif', gifSchema);
+const Image = mongoose.model('Image', imageSchema);
 
-module.exports = Gif;
+module.exports = Image;

@@ -3,6 +3,7 @@ require('dotenv').config();
 const oauth2Plugin = require('@fastify/oauth2');
 const AutoLoad = require('fastify-autoload');
 const path = require('path');
+const cors = require('@fastify/cors');
 
 const db = require('./db');
 
@@ -32,11 +33,15 @@ fastify.addHook('onError', (request, reply, error, done) => {
     done();
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    fastify.register(require('@fastify/cors'), {
-        // put your options here
-    });
-}
+fastify.register(cors, {
+    origin: [
+        /http:\/\/localhost*/,
+    ],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+
+});
 
 
 fastify.register(oauth2Plugin, {
