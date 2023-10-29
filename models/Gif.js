@@ -45,9 +45,9 @@ const gifSchema = new mongoose.Schema({
 });
 
 //before saving the gif, create uid
-gifSchema.pre('save', function (next) {
+gifSchema.pre('save', async function (next) {
     const gif = this;
-    gif.uid = uid();
+    gif.uid = await uid();
     next();
 });
 

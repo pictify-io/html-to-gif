@@ -1,0 +1,20 @@
+<div class="flex flex-col items-center justify-center">
+    <div id="image" style="cursor: pointer;">
+        <img src="{{gifURL}}" />
+    </div>
+    <div class="text-center">
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Image created successfully</p>
+    </div>
+    <div class="mt-4">
+        <a href="{{gifURL}}" target="_blank"
+            class="text-sm text-gray-600 dark:text-gray-400 hover:underline cursor-pointer">{{gifURL}}</a>
+    </div>
+</div>
+
+<script>
+    const image = document.getElementById('image');
+    image.addEventListener('click', () => {
+        navigator.clipboard.writeText('{{gifURL}}');
+        alert('Copied to clipboard');
+    });
+</script>

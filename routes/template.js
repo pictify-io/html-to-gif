@@ -4,6 +4,7 @@ const path = require('path');
 
 const templatePathMap = {
     IMAGE_GENERATED: '../templates/image-generated.html',
+    GIF_GENERATED: '../templates/gif-generated.html',
 };
 const getTemplate = async (req, res) => {
     const { type, variables } = req.query;
