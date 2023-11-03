@@ -41,9 +41,7 @@ const imageSchema = new mongoose.Schema({
 //before saving the image, create uid
 imageSchema.pre('save', async function (next) {
     const image = this;
-    console.log('pre save');
     image.uid = await uid();
-    console.log(image.uid);
     next();
 }
 );

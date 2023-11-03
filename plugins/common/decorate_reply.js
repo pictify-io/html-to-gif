@@ -1,5 +1,6 @@
 const fp = require('fastify-plugin')
 const AuthToken = require('../../models/AuthToken');
+const ApiToken = require('../../models/ApiToken');
 const uid = require('../../util/uid');
 
 const cookieOptions = {
@@ -15,7 +16,8 @@ module.exports = fp(async (fastify, opts) => {
     fastify.decorateReply('loginCallback', async function ({ user, payload }) {
         const userUid = await uid();
         const authToken = new AuthToken({ user: user._id, uid: userUid });
-        await authToken.save();
+        const apiToken = new ApiToken({ user: user._id });
+        await Promise.all([authToken.save(), apiToken.save()]);
         this.setCookie('auth-token', authToken.uid, cookieOptions).code(200).send(payload)
     });
     fastify.decorateReply('logout', function ({ payload }) {
