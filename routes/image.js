@@ -1,5 +1,5 @@
 const captureImages = require('../lib/image');
-const decorateUser = require('../plugins/decorate_user');
+const verifyApiToken = require('../plugins/verify_api_token');
 const Image = require('../models/Image');
 const rateLimit = require('@fastify/rate-limit');
 
@@ -90,7 +90,7 @@ const createPublicImageHandler = async (req, res) => {
 
 module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
-        fastify.register(decorateUser);
+        fastify.register(verifyApiToken);
         fastify.post('/', createImageHandler);
         fastify.get('/', getUserImagesHandler);
     });
