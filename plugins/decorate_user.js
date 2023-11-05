@@ -18,11 +18,12 @@ const decorateUser = async (request, reply) => {
     }
     const authTokens = parseCookie(request.headers.cookie);
 
-    if (!authTokens || !authTokens['auth-token']) {
+    if (!authTokens && !authTokens['auth-token']) {
         reply.code(401).send({ message: 'Invalid Request' })
 
     }
-    const authToken = await AuthToken.findOne({ uid: cookie['auth-token'] }).populate('user');
+    const authToken = await AuthToken.findOne({ uid: authTokens['auth-token'] }).populate('user');
+
     if (!authToken) {
         reply.code(401).send({ message: 'Invalid Request' })
     }

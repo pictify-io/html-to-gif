@@ -2,49 +2,60 @@ const axios = require('axios');
 const User = require('../models/User');
 const { isEmail, isPassword } = require('../util/validator');
 const { compare } = require('../util/hash');
-const uid = require('../util/uid');
 
 
 module.exports = async (fastify) => {
 
     const singUpHandler = async (req, res) => {
-        const { email, password, name } = req.body;
+        const { email, password } = req.body;
         if (!isEmail(email)) {
-            return res.status(400).send({ message: 'Invalid email' });
+            return res.status(401).send({ message: 'Invalid email' });
         }
         if (!isPassword(password)) {
-            return res.status(400).send({ message: 'Invalid password' });
-        }
-        if (!name) {
-            return res.status(400).send({ message: 'Invalid name' });
+            return res.status(401).send({ message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one number' });
         }
 
-        const userUid = await uid();
-        const user = await User.create({ email, password, name, uid: userUid });
-        return res.loginCallback(user);
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).send({ message: 'User already exists' });
+        }
+        const user = await User.create({ email, password });
+        return res.loginCallback({
+            user,
+            payload: {
+                message: 'Signed up successfully',
+                user
+            }
+        });
     }
 
     const loginHandler = async (req, res) => {
         const { email, password } = req.body;
 
         if (!isEmail(email)) {
-            return res.status(400).send({ message: 'Invalid email' });
+            return res.status(401).send({ message: 'Invalid email or password' });
         }
         if (!isPassword(password)) {
-            return res.status(400).send({ message: 'Invalid password' });
+            return res.status(401).send({ message: 'Invalid email or password' });
         }
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).send({ message: 'Invalid email or password' });
+            return res.status(401).send({ message: 'Invalid email or password' });
         }
 
         const isPasswordValid = await compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).send({ message: 'Invalid email or password' });
+            return res.status(401).send({ message: 'Invalid email or password' });
         }
 
-        return res.loginCallback(user);
+        return res.loginCallback({
+            user,
+            payload: {
+                message: 'Logged in successfully',
+                user
+            }
+        });
     }
 
     const logoutHandler = async (req, res) => {
@@ -75,9 +86,7 @@ module.exports = async (fastify) => {
             const { email, name } = data;
             user = await User.findOne({ email });
             if (!user) {
-                const userUid = await uid();
                 user = await User.create({
-                    uid: userUid,
                     email,
                     name,
                     signupMethod: 'google',
@@ -91,7 +100,7 @@ module.exports = async (fastify) => {
         if (!user) {
             return res.status(500).send({ message: 'Something went wrong' });
         }
-        return res.loginCallback({ user });
+        return res.loginCallback({ user, payload: { message: 'Logged in successfully', user } });
     }
 
     fastify.register(async (fastify) => {
@@ -102,7 +111,7 @@ module.exports = async (fastify) => {
     });
 }
 
-module.exports.autoPrefix = '/auth';
+module.exports.autoPrefix = '/api/auth';
 
 
 

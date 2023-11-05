@@ -4,8 +4,8 @@ const isEmail = (email) => {
 }
 
 const isPassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-    return regex.test(password);
+
+    return password.length >= 8 && /\d/.test(password) && /[A-Z]/.test(password) && /[a-z]/.test(password);
 }
 
 module.exports = {

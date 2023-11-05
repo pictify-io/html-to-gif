@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { hash } = require('../util/hash');
 const uid = require('../util/uid');
 const AuthToken = require('./AuthToken');
+const ApiToken = require('./ApiToken');
 
 const getMonthlyLimit = (plan) => {
     switch (plan) {
@@ -25,10 +26,7 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    name: {
-        type: String,
-        required: true
-    },
+
     email: {
         type: String,
         required: true,
@@ -71,7 +69,7 @@ const userSchema = new mongoose.Schema({
 });
 
 //before saving the user, hash the password and create uid
-userSchema.pre('create', async function (next) {
+userSchema.pre('save', async function (next) {
     const user = this;
     user.uid = await uid();
     console.log(user);
@@ -79,9 +77,15 @@ userSchema.pre('create', async function (next) {
     next();
 });
 
+userSchema.post('save', async function (user, next) {
+    console.log(user);
+    await ApiToken.create({ user: user._id });
+    next();
+});
+
 userSchema.methods.logOut = async function () {
     const user = this;
-    await AuthToken.update({ user: user.uid }, { active: false });
+    await AuthToken.update({ user: user._id }, { active: false });
 };
 
 userSchema.methods.hasExceededMonthlyLimit = function () {

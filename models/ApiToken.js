@@ -43,3 +43,5 @@ apiTokenSchema.pre('get', function (next) {
 
 const ApiToken = mongoose.model('ApiToken', apiTokenSchema);
 
+module.exports = ApiToken;
+

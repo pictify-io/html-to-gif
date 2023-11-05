@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 module.exports = async (len = 64) => {
-    if (length % 2 !== 0) {
+    if (len % 2 !== 0) {
         throw new Error('API key length must be an even number for hexadecimal representation.');
     }
 
