@@ -16,7 +16,8 @@ module.exports = fp(async (fastify, opts) => {
     fastify.decorateReply('loginCallback', async function ({ user, payload }) {
         const userUid = await uid();
         const authToken = new AuthToken({ user: user._id, uid: userUid });
-        await authToken.save(); 
+        await authToken.save();
+        this.type('text/html');
         this.setCookie('auth-token', authToken.uid, cookieOptions).code(200).send(payload)
     });
     fastify.decorateReply('logout', function ({ payload }) {

@@ -85,7 +85,7 @@ userSchema.post('save', async function (user, next) {
 
 userSchema.methods.logOut = async function () {
     const user = this;
-    await AuthToken.update({ user: user._id }, { active: false });
+    await AuthToken.updateMany({ user: user._id, active: true }, { active: false });
 };
 
 userSchema.methods.hasExceededMonthlyLimit = function () {

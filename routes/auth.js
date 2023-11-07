@@ -2,6 +2,7 @@ const axios = require('axios');
 const User = require('../models/User');
 const { isEmail, isPassword } = require('../util/validator');
 const { compare } = require('../util/hash');
+const decorateUser = require('../plugins/decorate_user');
 
 
 module.exports = async (fastify) => {
@@ -60,8 +61,8 @@ module.exports = async (fastify) => {
 
     const logoutHandler = async (req, res) => {
         const { user } = req;
-        await user.logout();
-        return res.send({ message: 'Logged out successfully' });
+        await user.logOut();
+        return res.logout({ payload: { message: 'Logged out successfully' } });
     }
 
 
@@ -100,18 +101,26 @@ module.exports = async (fastify) => {
         if (!user) {
             return res.status(500).send({ message: 'Something went wrong' });
         }
-        return res.loginCallback({ user, payload: { message: 'Logged in successfully', user } });
+        return res.loginCallback({
+            user, payload: `<script> window.close()</script>`
+        });
     }
 
     fastify.register(async (fastify) => {
-        fastify.post('/signup', singUpHandler);
-        fastify.post('/login', loginHandler);
-        fastify.post('/logout', logoutHandler);
-        fastify.get('/google/callback', googleLoginCallbackHandler);
+        fastify.register(async (fastify) => {
+            fastify.post('/signup', singUpHandler);
+            fastify.post('/login', loginHandler);
+            fastify.get('/google/callback', googleLoginCallbackHandler);
+        });
+
+        fastify.register(async (fastify) => {
+            fastify.register(decorateUser);
+            fastify.post('/logout', logoutHandler);
+        });
     });
 }
 
-module.exports.autoPrefix = '/api/auth';
+module.exports.autoPrefix = '/auth';
 
 
 
