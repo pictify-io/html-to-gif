@@ -13,7 +13,7 @@ const cookieOptions = {
 
 
 module.exports = fp(async (fastify, opts) => {
-    fastify.decorateReply('loginCallback', async function ({ user, payload }) {
+    fastify.decorateReply('loginCallback', async function ({ user, payload, isHTML = false }) {
         const userUid = await uid();
         const authToken = new AuthToken({ user: user._id, uid: userUid });
         await authToken.save();

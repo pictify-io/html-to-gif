@@ -1,7 +1,7 @@
 const axios = require('axios');
 const User = require('../models/User');
 const { isEmail, isPassword } = require('../util/validator');
-const { compare } = require('../util/hash');
+const { compare, hash } = require('../util/hash');
 const decorateUser = require('../plugins/decorate_user');
 
 
@@ -20,13 +20,10 @@ module.exports = async (fastify) => {
         if (existingUser) {
             return res.status(409).send({ message: 'User already exists' });
         }
-        const user = await User.create({ email, password });
+        const hashedPassword = await hash(password);
+        const user = await User.create({ email, password: hashedPassword });
         return res.loginCallback({
-            user,
-            payload: {
-                message: 'Signed up successfully',
-                user
-            }
+            user
         });
     }
 
@@ -51,11 +48,7 @@ module.exports = async (fastify) => {
         }
 
         return res.loginCallback({
-            user,
-            payload: {
-                message: 'Logged in successfully',
-                user
-            }
+            user
         });
     }
 
@@ -102,7 +95,7 @@ module.exports = async (fastify) => {
             return res.status(500).send({ message: 'Something went wrong' });
         }
         return res.loginCallback({
-            user, payload: `<script> window.close()</script>`
+            user, payload: `<script> window.close()</script>`, isHTML: true
         });
     }
 
