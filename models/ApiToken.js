@@ -36,10 +36,11 @@ apiTokenSchema.pre('save', async function (next) {
     next();
 });
 
-apiTokenSchema.pre('get', function (next) {
+apiTokenSchema.pre('find', function (next) {
     this.where({ active: true });
     next();
 });
+
 
 const ApiToken = mongoose.model('ApiToken', apiTokenSchema);
 

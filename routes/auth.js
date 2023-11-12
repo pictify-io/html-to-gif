@@ -38,7 +38,7 @@ module.exports = async (fastify) => {
         }
 
         const user = await User.findOne({ email });
-        if (!user) {
+        if (!user) {    
             return res.status(401).send({ message: 'Invalid email or password' });
         }
 
