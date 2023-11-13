@@ -1,31 +1,57 @@
-const fs = require('fs').promises;
-const path = require('path');
+const Template = require('../models/template');
+const decorateUser = require('../plugins/decorate_user');
 
+const getTemplates = async (req, res) => {
+    const { user } = req;
+    const templates = await Template.find({ createdBy: user._id });
+    return res.send({ templates });
+}
 
-const templatePathMap = {
-    IMAGE_GENERATED: '../templates/image-generated.html',
-    GIF_GENERATED: '../templates/gif-generated.html',
-};
+const createTemplate = async (req, res) => {
+    const { user } = req;
+    const { html, variables, name } = req.body;
+    const template = await Template.create({ html, variables, createdBy: user._id, name });
+    return res.send({ template });
+}
+
 const getTemplate = async (req, res) => {
-    const { type, variables } = req.query;
-    const templatePath = templatePathMap[type];
-    if (!templatePath) {
-        return res.status(404).send({ error: 'Not found' });
+    const { user } = req;
+    const { uid } = req.params;
+    const template = await Template.findOne({ uid, createdBy: user._id });
+    if (!template) {
+        return res.status(404).send({ message: 'Template not found' });
     }
-    let template = await fs.readFile(path.join(__dirname, templatePath), 'utf8');
-    const variablesMap = JSON.parse(variables);
-    const variableKeys = Object.keys(variablesMap);
-    variableKeys.forEach((key) => {
-        const value = variablesMap[key];
-        template = template.replaceAll(`{{${key}}}`, value);
-    });
+    return res.send({ template });
+}
+
+const updateTemplate = async (req, res) => {
+    const { user } = req;
+    const { uid } = req.params;
+    const { html, variables, name } = req.body;
+    const template = await Template.findOneAndUpdate({ uid, createdBy: user._id }, { html, variables, name });
+    if (!template) {
+        return res.status(404).send({ message: 'Template not found' });
+    }
+    return res.send({ template });
+}
+
+const deleteTemplate = async (req, res) => {
+    const { user } = req;
+    const { uid } = req.params;
+    const template = await Template.findOneAndUpdate({ uid, createdBy: user._id }, { active: false });
+    if (!template) {
+        return res.status(404).send({ message: 'Template not found' });
+    }
     return res.send({ template });
 }
 
 module.exports = async (fastify) => {
-    fastify.register(async (fastify) => {
-        fastify.get('/template', getTemplate);
-    });
+    fastify.register(decorateUser);
+    fastify.get('/', getTemplates);
+    fastify.post('/', createTemplate);
+    fastify.get('/:uid', getTemplate);
+    fastify.put('/:uid', updateTemplate);
+    fastify.delete('/:uid', deleteTemplate);
 }
 
-module.exports.autoPrefix = '/api';
+module.exports.autoPrefix = '/api/templates';
