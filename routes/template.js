@@ -9,8 +9,10 @@ const getTemplates = async (req, res) => {
 
 const createTemplate = async (req, res) => {
     const { user } = req;
-    const { html, variables, name } = req.body;
-    const template = await Template.create({ html, variables, createdBy: user._id, name });
+
+    const { html, variables, name, grapeJSData, width, height } = req.body;
+    const template = await Template.create(
+        { html, variables, grapeJSData, width, height, createdBy: user._id, name });
     return res.send({ template });
 }
 
@@ -27,11 +29,18 @@ const getTemplate = async (req, res) => {
 const updateTemplate = async (req, res) => {
     const { user } = req;
     const { uid } = req.params;
-    const { html, variables, name } = req.body;
-    const template = await Template.findOneAndUpdate({ uid, createdBy: user._id }, { html, variables, name });
+    const { html, variables, name, grapeJSData, width, height } = req.body;
+
+    const template = await Template.findOneAndUpdate(
+        { uid, createdBy: user._id },
+        { html, variables, name, grapeJSData, width, height },
+        { new: true }
+    );
+
     if (!template) {
         return res.status(404).send({ message: 'Template not found' });
     }
+
     return res.send({ template });
 }
 

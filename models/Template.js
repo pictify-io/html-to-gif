@@ -22,6 +22,18 @@ const templateSchema = new mongoose.Schema({
         type: Array,
         required: true
     },
+    grapeJSData: {
+        type: Object,
+        required: false
+    },
+    width: {
+        type: Number,
+        required: false
+    },
+    height: {
+        type: Number,
+        required: false
+    },
     createdBy: {
         type: String,
         ref: 'User',
