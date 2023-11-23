@@ -9,6 +9,12 @@ const getUser = async (req, res) => {
     return res.send({ user });
 }
 
+const getUserPlanDetails = async (req, res) => {
+    const { user } = req;
+    const { monthlyLimit, hasExceededMonthlyLimit, usage, nextReset } = user.getPlanDetails();
+    return res.send({ monthlyLimit, hasExceededMonthlyLimit, usage, nextReset });
+}
+
 const getUserApiTokens = async (req, res) => {
     const { user } = req;
     const apiTokens = await ApiToken.find({ user: user._id });
@@ -37,6 +43,7 @@ module.exports = async (fastify) => {
     fastify.get('/api-tokens', getUserApiTokens);
     fastify.post('/api-tokens', createNewApiToken);
     fastify.delete('/api-tokens/:uid', deactivateApiToken);
+    fastify.get('/plans', getUserPlanDetails);
 }
 
 module.exports.autoPrefix = '/api/users';

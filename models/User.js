@@ -47,8 +47,8 @@ const userSchema = new mongoose.Schema({
     },
     currentPlan: {
         type: String,
-        default: 'demo',
-        enum: ['demo', 'free', 'basic', 'premium'],
+        default: 'free',
+        enum: ['free', 'free', 'basic', 'premium'],
         required: true
     },
     usage: {
@@ -102,6 +102,15 @@ userSchema.methods.hasExceededMonthlyLimit = function () {
     const monthlyLimit = getMonthlyLimit(user.currentPlan);
     return user.usage.count >= monthlyLimit;
 };
+
+userSchema.methods.getPlanDetails = function () {
+    const user = this;
+    const monthlyLimit = getMonthlyLimit(user.currentPlan);
+    const hasExceededMonthlyLimit = user.hasExceededMonthlyLimit();
+    const usage = user.usage.count;
+    const nextReset = user.usage.lastReset + 30 * 24 * 60 * 60 * 1000;
+    return { monthlyLimit, hasExceededMonthlyLimit, usage, nextReset };
+}
 
 const User = mongoose.model('User', userSchema);
 
