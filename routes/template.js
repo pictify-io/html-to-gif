@@ -54,6 +54,14 @@ const deleteTemplate = async (req, res) => {
     return res.send({ template });
 }
 
+const searchTemplates = async (req, res) => {
+    // Search for substring in name
+    const { user } = req;
+    const { q } = req.query;
+    const templates = await Template.find({ name: { $regex: q, $options: 'i' }, createdBy: user._id });
+    return res.send({ templates });
+}
+
 module.exports = async (fastify) => {
     fastify.register(decorateUser);
     fastify.get('/', getTemplates);
@@ -61,6 +69,7 @@ module.exports = async (fastify) => {
     fastify.get('/:uid', getTemplate);
     fastify.put('/:uid', updateTemplate);
     fastify.delete('/:uid', deleteTemplate);
+    fastify.get('/search', searchTemplates);
 }
 
 module.exports.autoPrefix = '/api/templates';

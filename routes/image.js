@@ -40,7 +40,20 @@ const createImageHandler = async (req, res) => {
 
 const getUserImagesHandler = async (req, res) => {
     const { user } = req;
-    const images = await Image.find({ createdBy: user._id });
+    let { limit, offset } = req.query;
+    if (!limit) {
+        limit = 30;
+    }
+    if (!offset) {
+        offset = 0;
+    }
+    if (limit > 100) {
+        limit = 100;
+    }
+    if (offset < 0) {
+        offset = 0;
+    }
+    const images = await Image.find({ createdBy: user._id }).limit(limit).skip(offset);
     return res.send({ images });
 }
 

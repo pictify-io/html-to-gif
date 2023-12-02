@@ -1,5 +1,6 @@
 const createGif = require('../lib/gif');
 const decorateUser = require('../plugins/decorate_user');
+const verifyApiToken = require('../plugins/verify_api_token');
 const Gif = require('../models/Gif');
 const rateLimit = require('@fastify/rate-limit');
 
@@ -44,7 +45,20 @@ const rateLimit = require('@fastify/rate-limit');
 
 const getUserGifsHandler = async (req, res) => {
     const { user } = req;
-    const gifs = await Gif.find({ createdBy: user._id });
+    let { limit, offset } = req.query;
+    if (!limit) {
+        limit = 30;
+    }
+    if (!offset) {
+        offset = 0;
+    }
+    if (limit > 100) {
+        limit = 100;
+    }
+    if (offset < 0) {
+        offset = 0;
+    }
+    const gifs = await Gif.find({ createdBy: user._id }).limit(limit).skip(offset);
     return res.send({ gifs });
 }
 
@@ -97,9 +111,9 @@ const createPublicGifHandler = async (req, res) => {
 
 module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
-        fastify.register(decorateUser);
+        fastify.register(verifyApiToken);
         fastify.post('/create', createGifHandler);
-        fastify.get('/user', getUserGifsHandler);
+        fastify.get('/', getUserGifsHandler);
     })
 
     fastify.register(async (fastify) => {
