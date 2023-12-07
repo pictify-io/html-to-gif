@@ -26,7 +26,7 @@ const verifyApiToken = async (request, reply) => {
     }
 
     if (user.hasExceededMonthlyLimit()) {
-        reply.code(401).send({ message: 'You have exhausted your monthly limit' });
+        reply.code(429).send({ message: 'You have exhausted your monthly limit' });
     }
 
     request.user = user;
