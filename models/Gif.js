@@ -12,11 +12,9 @@ const gifSchema = new mongoose.Schema({
     },
     url: {
         type: String,
-        required: true
     },
     html: {
         type: String,
-        required: true
     },
     link: {
         type: String,
