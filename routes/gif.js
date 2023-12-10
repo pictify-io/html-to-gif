@@ -6,7 +6,7 @@ const rateLimit = require('@fastify/rate-limit');
 
     const createGifHandler = async (req, res) => {
         const { user } = req;
-        const { html, url, width, height, framesPerSecond } = req.body;
+        const { html, url, width, height, framesPerSecond, selector } = req.body;
         let gif;
         try {
             const { url: gifLink, metadata } = await createGif({
@@ -14,7 +14,8 @@ const rateLimit = require('@fastify/rate-limit');
                 url,
                 width,
                 height,
-                framesPerSecond
+                framesPerSecond,
+                selector
             });
             gif = {
                 url: gifLink,
