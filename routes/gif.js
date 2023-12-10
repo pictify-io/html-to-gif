@@ -122,10 +122,11 @@ module.exports = async (fastify) => {
     });
 
     fastify.register(async (fastify) => {
-        fastify.register(rateLimit, {
-            max: 10,
+        await fastify.register(rateLimit, {
+            max: 5,
             timeWindow: '1 minute',
             cache: 10000,
+            allowList: [process.env.FRONTEND_IP]
         });
 
         fastify.post('/public', createPublicGifHandler);
