@@ -6,7 +6,7 @@ const rateLimit = require('@fastify/rate-limit');
 const puppeteer = require('puppeteer');
 
 const browserConfig = {
-    headless: false,
+    headless: 'new',
 };
 
 const browser = puppeteer.launch(browserConfig);
