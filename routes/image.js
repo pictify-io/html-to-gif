@@ -3,6 +3,15 @@ const verifyApiToken = require('../plugins/verify_api_token');
 const Image = require('../models/Image');
 const rateLimit = require('@fastify/rate-limit');
 
+const puppeteer = require('puppeteer');
+
+const browserConfig = {
+    headless: false,
+};
+
+const browser = puppeteer.launch(browserConfig);
+
+
 const createImageHandler = async (req, res) => {
     const { user } = req;
     const { html, url, width, height } = req.body;
@@ -12,7 +21,8 @@ const createImageHandler = async (req, res) => {
             html,
             url: imageLink,
             width,
-            height
+            height,
+            browser
         });
         image = {
             url,
@@ -75,7 +85,8 @@ const createPublicImageHandler = async (req, res) => {
             html,
             url,
             width,
-            height
+            height,
+            browser
         });
         image = {
             url: imageLink,
