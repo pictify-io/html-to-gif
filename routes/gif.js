@@ -4,45 +4,54 @@ const verifyApiToken = require('../plugins/verify_api_token');
 const Gif = require('../models/Gif');
 const rateLimit = require('@fastify/rate-limit');
 
-    const createGifHandler = async (req, res) => {
-        const { user } = req;
-        const { html, url, width, height, framesPerSecond, selector } = req.body;
-        let gif;
-        try {
-            const { url: gifLink, metadata } = await createGif({
-                html,
-                url,
-                width,
-                height,
-                framesPerSecond,
-                selector
-            });
-            gif = {
-                url: gifLink,
-                ...metadata
-            };
-        }
-        catch (err) {
-            console.log(err);
-            return res.status(500).send({ error: 'Something went wrong' });
-        }
+const puppeteer = require('puppeteer');
 
-        if (!gif) {
-            return res.status(500).send({ error: 'Something went wrong' });
-        }
+const browserConfig = {
+    headless: 'new',
+};
 
-        gif = await Gif.create({
-            url: gif.url,
+const browser = puppeteer.launch(browserConfig);
+
+const createGifHandler = async (req, res) => {
+    const { user } = req;
+    const { html, url, width, height, framesPerSecond, selector } = req.body;
+    let gif;
+    try {
+        const { url: gifLink, metadata } = await createGif({
             html,
-             width: gif.width,
-             height: gif.height,
-             framesPerSecond: gif.framesPerSecond,
-             animationLength: gif.animationLength,
-            createdBy: user._id
+            url,
+            width,
+            height,
+            framesPerSecond,
+            selector,
+            browser
         });
-
-        return res.send({ gif });
+        gif = {
+            url: gifLink,
+            ...metadata
+        };
     }
+    catch (err) {
+        console.log(err);
+        return res.status(500).send({ error: 'Something went wrong' });
+    }
+
+    if (!gif) {
+        return res.status(500).send({ error: 'Something went wrong' });
+    }
+
+    gif = await Gif.create({
+        url: gif.url,
+        html,
+        width: gif.width,
+        height: gif.height,
+        framesPerSecond: gif.framesPerSecond,
+        animationLength: gif.animationLength,
+        createdBy: user._id
+    });
+
+    return res.send({ gif });
+}
 
 const getUserGifsHandler = async (req, res) => {
     const { user } = req;
@@ -81,7 +90,8 @@ const createPublicGifHandler = async (req, res) => {
             url,
             width,
             height,
-            framesPerSecond
+            framesPerSecond,
+            browser
         });
         gif = {
             url: gifLink,
