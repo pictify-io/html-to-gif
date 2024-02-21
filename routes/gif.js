@@ -49,6 +49,8 @@ const createGifHandler = async (req, res) => {
         animationLength: gif.animationLength,
         createdBy: user._id
     });
+    user.usage.count += 1;
+    user.save();
 
     return res.send({ gif });
 }

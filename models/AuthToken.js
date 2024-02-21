@@ -25,6 +25,10 @@ const authTokenSchema = new mongoose.Schema({
     }
 });
 
+const filterActive = function (next) {
+    this.where({ active: true });
+    next();
+};
 
 authTokenSchema.pre('save', function (next) {
     const authToken = this;
@@ -32,10 +36,12 @@ authTokenSchema.pre('save', function (next) {
     next();
 });
 
-authTokenSchema.pre('get', function (next) {
-    this.where({ active: true });
-    next();
-});
+authTokenSchema.pre('findOne', filterActive);
+authTokenSchema.pre('find', filterActive);
+authTokenSchema.pre('findById', filterActive);
+authTokenSchema.pre('findByIdAndUpdate', filterActive);
+authTokenSchema.pre('findByIdAndRemove', filterActive);
+authTokenSchema.pre('findOneAndUpdate', filterActive);
 
 authTokenSchema.methods.isValid = async function () {
     const authToken = this;

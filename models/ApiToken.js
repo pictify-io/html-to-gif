@@ -27,7 +27,10 @@ const apiTokenSchema = new mongoose.Schema({
 });
 
 
-
+const filterActive = function (next) {
+    this.where({ active: true });
+    next();
+};
 
 apiTokenSchema.pre('save', async function (next) {
     const apiToken = this;
@@ -36,10 +39,13 @@ apiTokenSchema.pre('save', async function (next) {
     next();
 });
 
-apiTokenSchema.pre('find', function (next) {
-    this.where({ active: true });
-    next();
-});
+apiTokenSchema.pre('findOne', filterActive);
+apiTokenSchema.pre('find', filterActive);
+apiTokenSchema.pre('findById', filterActive);
+apiTokenSchema.pre('findByIdAndUpdate', filterActive);
+apiTokenSchema.pre('findByIdAndRemove', filterActive);
+apiTokenSchema.pre('findOneAndUpdate', filterActive);
+
 
 
 const ApiToken = mongoose.model('ApiToken', apiTokenSchema);

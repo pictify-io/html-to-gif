@@ -72,7 +72,6 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', async function (next) {
     const user = this;
     user.uid = await uid();
-    console.log(user);
     user.password = hash(user.password);
     next();
 });
@@ -96,6 +95,7 @@ userSchema.methods.hasExceededMonthlyLimit = function () {
         // Reset the count and lastReset fields
         user.usage.count = 0;
         user.usage.lastReset = Date.now();
+        user.save();
     }
 
     // Check if the user has exceeded their monthly limit

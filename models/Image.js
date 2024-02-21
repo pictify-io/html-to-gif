@@ -36,6 +36,11 @@ const imageSchema = new mongoose.Schema({
     }
 });
 
+const filterActive = function (next) {
+    this.where({ active: true });
+    next();
+};
+
 //before saving the image, create uid
 imageSchema.pre('save', async function (next) {
     const image = this;
@@ -44,10 +49,12 @@ imageSchema.pre('save', async function (next) {
 }
 );
 
-imageSchema.pre('get', function (next) {
-    this.where({ active: true });
-    next();
-});
+imageSchema.pre('findOne', filterActive);
+imageSchema.pre('find', filterActive);
+imageSchema.pre('findById', filterActive);
+imageSchema.pre('findByIdAndUpdate', filterActive);
+imageSchema.pre('findByIdAndRemove', filterActive);
+imageSchema.pre('findOneAndUpdate', filterActive);
 
 const Image = mongoose.model('Image', imageSchema);
 

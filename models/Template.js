@@ -52,10 +52,17 @@ templateSchema.pre('save', async function (next) {
     next();
 });
 
-templateSchema.pre('get', function (next) {
+const filterActive = function (next) {
     this.where({ active: true });
     next();
-});
+};
+
+templateSchema.pre('findOne', filterActive);
+templateSchema.pre('find', filterActive);
+templateSchema.pre('findById', filterActive);
+templateSchema.pre('findByIdAndUpdate', filterActive);
+templateSchema.pre('findByIdAndRemove', filterActive);
+templateSchema.pre('findOneAndUpdate', filterActive);
 
 
 const Template = mongoose.model('Template', templateSchema);

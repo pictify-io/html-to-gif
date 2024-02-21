@@ -42,6 +42,11 @@ const gifSchema = new mongoose.Schema({
     }
 });
 
+const filterActive = function (next) {
+    this.where({ active: true });
+    next();
+};
+
 //before saving the gif, create uid
 gifSchema.pre('save', async function (next) {
     const gif = this;
@@ -49,10 +54,12 @@ gifSchema.pre('save', async function (next) {
     next();
 });
 
-gifSchema.pre('get', function (next) {
-    this.where({ active: true });
-    next();
-});
+gifSchema.pre('findOne', filterActive);
+gifSchema.pre('find', filterActive);
+gifSchema.pre('findById', filterActive);
+gifSchema.pre('findByIdAndUpdate', filterActive);
+gifSchema.pre('findByIdAndRemove', filterActive);
+gifSchema.pre('findOneAndUpdate', filterActive);
 
 const Gif = mongoose.model('Gif', gifSchema);
 

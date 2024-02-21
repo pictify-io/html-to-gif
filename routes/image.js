@@ -1,6 +1,7 @@
 const captureImages = require('../lib/image');
 const verifyApiToken = require('../plugins/verify_api_token');
 const Image = require('../models/Image');
+
 const rateLimit = require('@fastify/rate-limit');
 
 const puppeteer = require('puppeteer');
@@ -15,17 +16,18 @@ const browser = puppeteer.launch(browserConfig);
 const createImageHandler = async (req, res) => {
     const { user } = req;
     const { html, url, width, height } = req.body;
+    return res.send({ message: 'Hello from image' });
     let image;
     try {
         const { url: imageLink, metadata } = await captureImages({
             html,
-            url: imageLink,
+            url,
             width,
             height,
             browser
         });
         image = {
-            url,
+            url: imageLink,
             ...metadata
         };
     }
@@ -45,6 +47,10 @@ const createImageHandler = async (req, res) => {
         height: image.height,
         createdBy: user._id
     });
+
+    user.usage.count += 1;
+    user.save();
+
     return res.send({ image });
 }
 
