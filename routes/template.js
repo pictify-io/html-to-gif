@@ -72,4 +72,4 @@ module.exports = async (fastify) => {
     fastify.get('/search', searchTemplates);
 }
 
-module.exports.autoPrefix = '/api/templates';
+module.exports.autoPrefix = '/templates';

@@ -126,6 +126,10 @@ module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
         fastify.register(verifyApiToken);
         fastify.post('/', createGifHandler);
+    });
+
+    fastify.register(async (fastify) => {
+        fastify.register(decorateUser);
         fastify.get('/', getUserGifsHandler);
     })
 
@@ -148,5 +152,5 @@ module.exports = async (fastify) => {
     });
 };
 
-module.exports.autoPrefix = '/api/gif';
+module.exports.autoPrefix = '/gif';
 

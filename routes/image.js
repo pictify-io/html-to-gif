@@ -1,5 +1,7 @@
 const captureImages = require('../lib/image');
 const verifyApiToken = require('../plugins/verify_api_token');
+const decorateUser = require('../plugins/decorate_user');
+
 const Image = require('../models/Image');
 
 const rateLimit = require('@fastify/rate-limit');
@@ -122,8 +124,12 @@ module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
         fastify.register(verifyApiToken);
         fastify.post('/', createImageHandler);
-        fastify.get('/', getUserImagesHandler);
     });
+
+    fastify.register(async (fastify) => {
+        fastify.register(decorateUser);
+        fastify.get('/', getUserImagesHandler);
+    })
 
     fastify.register(async (fastify) => {
         fastify.get('/:uid', getImageHandler);
@@ -144,4 +150,4 @@ module.exports = async (fastify) => {
     });
 }
 
-module.exports.autoPrefix = '/api/image';
+module.exports.autoPrefix = '/image';

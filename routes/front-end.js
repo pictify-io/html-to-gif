@@ -28,4 +28,4 @@ module.exports = async (fastify) => {
     });
 }
 
-module.exports.autoPrefix = '/api/fe/';
+module.exports.autoPrefix = '/fe';
