@@ -125,7 +125,7 @@ const createPublicGifHandler = async (req, res) => {
 module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
         fastify.register(verifyApiToken);
-        fastify.post('/create', createGifHandler);
+        fastify.post('/', createGifHandler);
         fastify.get('/', getUserGifsHandler);
     })
 
