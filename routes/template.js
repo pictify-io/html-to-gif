@@ -1,5 +1,6 @@
 const Template = require('../models/template');
 const decorateUser = require('../plugins/decorate_user');
+const verifyApiToken = require('../plugins/verify_api_token');
 
 const getTemplates = async (req, res) => {
     const { user } = req;
@@ -10,7 +11,13 @@ const getTemplates = async (req, res) => {
 const createTemplate = async (req, res) => {
     const { user } = req;
 
-    const { html, variables, name, grapeJSData, width, height } = req.body;
+    const { html, name, grapeJSData, width, height } = req.body;
+    const variables = [];
+    const variableRegex = /{{(.*?)}}/g;
+    let match;
+    while (match = variableRegex.exec(html)) {
+        variables.push(match[1]);
+    }
     const template = await Template.create(
         { html, variables, grapeJSData, width, height, createdBy: user._id, name });
     return res.send({ template });
@@ -63,13 +70,15 @@ const searchTemplates = async (req, res) => {
 }
 
 module.exports = async (fastify) => {
-    fastify.register(decorateUser);
-    fastify.get('/', getTemplates);
-    fastify.post('/', createTemplate);
-    fastify.get('/:uid', getTemplate);
-    fastify.put('/:uid', updateTemplate);
-    fastify.delete('/:uid', deleteTemplate);
-    fastify.get('/search', searchTemplates);
+    fastify.register(async (fastify) => {
+        fastify.register(decorateUser);
+        fastify.get('/search', searchTemplates);
+        fastify.get('/', getTemplates);
+        fastify.post('/', createTemplate);
+        fastify.get('/:uid', getTemplate);
+        fastify.put('/:uid', updateTemplate);
+        fastify.delete('/:uid', deleteTemplate);
+    });
 }
 
 module.exports.autoPrefix = '/templates';

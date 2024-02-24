@@ -52,6 +52,16 @@ templateSchema.pre('save', async function (next) {
     next();
 });
 
+templateSchema.methods.populateTemplate = async function (variables) {
+    let html = this.html;
+    const variableKeys = Object.keys(variables);
+    variableKeys.forEach((key) => {
+        const value = variables[key];
+        html = html.replaceAll(`{{${key}}}`, value);
+    });
+    return html;
+};
+
 const filterActive = function (next) {
     this.where({ active: true });
     next();

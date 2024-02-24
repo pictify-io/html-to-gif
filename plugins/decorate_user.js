@@ -13,25 +13,43 @@ const parseCookie = (cookie) => {
 
 const decorateUser = async (request, reply) => {
     const { cookie } = request.headers;
-    if (!cookie) {
-        reply.code(401).send({ message: 'Invalid Request' })
-    }
-    const authTokens = parseCookie(request.headers.cookie);
+    const authorization = request.headers['authorization'];
 
-    if (!authTokens && !authTokens['auth-token']) {
+    if (!cookie && !authorization) {
         reply.code(401).send({ message: 'Invalid Request' })
+    }
 
-    }
-    const authToken = await AuthToken.findOne({ uid: authTokens['auth-token'] }).populate('user');
+    if (cookie) {
+        const authTokens = parseCookie(request.headers.cookie);
 
-    if (!authToken) {
-        reply.code(401).send({ message: 'Invalid Request' })
+        if (!authTokens && !authTokens['auth-token']) {
+            reply.code(401).send({ message: 'Invalid Request' })
+
+        }
+        const authToken = await AuthToken.findOne({ uid: authTokens['auth-token'] }).populate('user');
+
+        if (!authToken) {
+            reply.code(401).send({ message: 'Invalid Request' })
+        }
+        if (!authToken.isValid()) {
+            reply.code(401).send({ message: 'Invalid Request' })
+        }
+        await authToken.refresh();
+        request.user = authToken.user;
+    } else if (authorization) {
+        const token = authorization.split('Bearer ')[1];
+
+        if (!token) {
+            reply.code(401).send({ message: 'Invalid Request' })
+        }
+
+        const authToken = await ApiToken.findOne({ token }).populate('user');
+        if (!authToken) {
+            reply.code(401).send({ message: 'Invalid Request' })
+        }
+        const { user } = authToken;
+        request.user = user;
     }
-    if (!authToken.isValid()) {
-        reply.code(401).send({ message: 'Invalid Request' })
-    }
-    await authToken.refresh();
-    request.user = authToken.user;
 }
 
 module.exports = fp(async (fastify, opts) => {
