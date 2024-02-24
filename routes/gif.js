@@ -1,7 +1,10 @@
 const createGif = require('../lib/gif');
 const decorateUser = require('../plugins/decorate_user');
 const verifyApiToken = require('../plugins/verify_api_token');
+
 const Gif = require('../models/Gif');
+const Template = require('../models/Template');
+
 const rateLimit = require('@fastify/rate-limit');
 
 const puppeteer = require('puppeteer');
@@ -14,8 +17,16 @@ const browser = puppeteer.launch(browserConfig);
 
 const createGifHandler = async (req, res) => {
     const { user } = req;
-    const { html, url, width, height, framesPerSecond, selector } = req.body;
+    const { url, width, height, template: templateUid, framesPerSecond, selector } = req.body;
+    let { html } = req.body;
     let gif;
+    if (templateUid) {
+        const template = await Template.findOne({ uid: templateUid, createdBy: user._id });
+        if (!template) {
+            return res.status(403).send({ error: 'Template not found' });
+        }
+        html = await template.populateTemplate(variables);
+    }
     try {
         const { url: gifLink, metadata } = await createGif({
             html,

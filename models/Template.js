@@ -54,7 +54,7 @@ templateSchema.pre('save', async function (next) {
 
 templateSchema.methods.populateTemplate = async function (variables) {
     let html = this.html;
-    const variableKeys = Object.keys(variables);
+    const variableKeys = this.variables;
     variableKeys.forEach((key) => {
         const value = variables[key];
         html = html.replaceAll(`{{${key}}}`, value);

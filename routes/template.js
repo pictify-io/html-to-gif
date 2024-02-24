@@ -1,6 +1,95 @@
-const Template = require('../models/template');
+const Template = require('../models/Template');
 const decorateUser = require('../plugins/decorate_user');
-const verifyApiToken = require('../plugins/verify_api_token');
+
+const templateSchema = {
+    type: 'object',
+    properties: {
+        html: { type: 'string' },
+        name: { type: 'string' },
+        grapeJSData: { type: 'object' },
+        createdAt: { type: 'string' },
+        variables: { type: 'array', items: { type: 'string' } },
+        uid: { type: 'string' },
+        width: { type: 'number' },
+        height: { type: 'number' },
+    }
+}
+
+const getTemplatesSchema = {
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                templates: {
+                    type: 'array',
+                    items: templateSchema
+                }
+            }
+        }
+    }
+}
+
+const createTemplateSchema = {
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                template: templateSchema
+            }
+        }
+    },
+}
+
+const getTemplateSchema = {
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                template: templateSchema
+            }
+        }
+    }
+}
+
+const updateTemplateSchema = {
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                template: templateSchema
+            }
+        }
+    }
+}
+
+const deleteTemplateSchema = {
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                template: templateSchema
+            }
+        }
+    }
+}
+
+
+const searchTemplatesSchema = {
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                templates: {
+                    type: 'array',
+                    items: templateSchema
+                }
+            }
+        }
+    }
+}
+
+
+
 
 const getTemplates = async (req, res) => {
     const { user } = req;
@@ -72,12 +161,12 @@ const searchTemplates = async (req, res) => {
 module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
         fastify.register(decorateUser);
-        fastify.get('/search', searchTemplates);
-        fastify.get('/', getTemplates);
-        fastify.post('/', createTemplate);
-        fastify.get('/:uid', getTemplate);
-        fastify.put('/:uid', updateTemplate);
-        fastify.delete('/:uid', deleteTemplate);
+        fastify.get('/search', { schema: searchTemplatesSchema }, searchTemplates);
+        fastify.get('/', { schema: getTemplatesSchema }, getTemplates);
+        fastify.post('/', { schema: createTemplateSchema }, createTemplate);
+        fastify.get('/:uid', { schema: getTemplateSchema }, getTemplate);
+        fastify.put('/:uid', { schema: updateTemplateSchema }, updateTemplate);
+        fastify.delete('/:uid', { schema: deleteTemplateSchema }, deleteTemplate);
     });
 }
 

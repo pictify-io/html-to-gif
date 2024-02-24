@@ -3,6 +3,7 @@ const verifyApiToken = require('../plugins/verify_api_token');
 const decorateUser = require('../plugins/decorate_user');
 
 const Image = require('../models/Image');
+const Template = require('../models/Template');
 
 const rateLimit = require('@fastify/rate-limit');
 
@@ -17,8 +18,18 @@ const browser = puppeteer.launch(browserConfig);
 
 const createImageHandler = async (req, res) => {
     const { user } = req;
-    const { html, url, width, height } = req.body;
-    return res.send({ message: 'Hello from image' });
+    const { url, width, height, template: templateUid, variables } = req.body;
+    let { html } = req.body;
+    if (templateUid) {
+        const template = await Template.findOne({ uid: templateUid, createdBy: user._id });
+        if (!template) {
+            return res.status(403).send({ error: 'Template not found' });
+        }
+
+        html = await template.populateTemplate(variables);
+    }
+    console.log(html);
+
     let image;
     try {
         const { url: imageLink, metadata } = await captureImages({
