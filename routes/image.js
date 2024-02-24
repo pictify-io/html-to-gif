@@ -18,7 +18,7 @@ const browser = puppeteer.launch(browserConfig);
 
 const createImageHandler = async (req, res) => {
     const { user } = req;
-    const { url, width, height, template: templateUid, variables } = req.body;
+    const { url, width, height, template: templateUid, variables, selector } = req.body;
     let { html } = req.body;
     if (templateUid) {
         const template = await Template.findOne({ uid: templateUid, createdBy: user._id });
@@ -37,6 +37,7 @@ const createImageHandler = async (req, res) => {
             url,
             width,
             height,
+            selector,
             browser
         });
         image = {
