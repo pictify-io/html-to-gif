@@ -122,6 +122,7 @@ const createPublicGifHandler = async (req, res) => {
 
     gif = await Gif.create({
         url: gif.url,
+        uid: gif.uid,
         html,
         width: gif.width,
         height: gif.height,

@@ -32,6 +32,15 @@ const getUploadStream = (fileExtension) => {
     };
 };
 
+const deleteFile = (key) => {
+    console.log('Deleting file', key);
+    return s3.deleteObject({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: key
+    }).promise();
+}
+
 module.exports = {
-    getUploadStream
+    getUploadStream,
+    deleteFile
 };

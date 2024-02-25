@@ -1,6 +1,7 @@
 const fp = require('fastify-plugin')
 const User = require('../models/User');
 const AuthToken = require('../models/AuthToken');
+const ApiToken = require('../models/ApiToken');
 
 const parseCookie = (cookie) => {
     const cookies = cookie.split(';')
@@ -37,12 +38,12 @@ const decorateUser = async (request, reply) => {
         request.user = authToken.user;
     } else if (authorization) {
         const token = authorization.split('Bearer ')[1];
-
         if (!token) {
             reply.code(401).send({ message: 'Invalid Request' })
         }
 
         const authToken = await ApiToken.findOne({ token }).populate('user');
+
         if (!authToken) {
             reply.code(401).send({ message: 'Invalid Request' })
         }

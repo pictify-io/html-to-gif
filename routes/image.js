@@ -54,7 +54,9 @@ const createImageHandler = async (req, res) => {
         return res.status(500).send({ error: 'Something went wrong' });
     }
 
+
     image = await Image.create({
+        uid: image.uid,
         url: image.url,
         html,
         width: image.width,

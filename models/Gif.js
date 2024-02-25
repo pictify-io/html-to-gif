@@ -50,7 +50,9 @@ const filterActive = function (next) {
 //before saving the gif, create uid
 gifSchema.pre('save', async function (next) {
     const gif = this;
-    gif.uid = await uid();
+    if (!gif.uid) {
+        gif.uid = await uid();
+    }
     next();
 });
 

@@ -44,7 +44,10 @@ const filterActive = function (next) {
 //before saving the image, create uid
 imageSchema.pre('save', async function (next) {
     const image = this;
-    image.uid = await uid();
+    console.log(image);
+    if (!image.uid) {
+        image.uid = await uid();
+    }
     next();
 }
 );
