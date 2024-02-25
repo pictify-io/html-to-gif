@@ -65,7 +65,11 @@ const createImageHandler = async (req, res) => {
     user.usage.count += 1;
     user.save();
 
-    return res.send({ image });
+    return res.send({
+        url: image.url,
+        id: image.uid,
+        createdAt: image.createdAt
+    });
 }
 
 const getUserImagesHandler = async (req, res) => {
@@ -83,7 +87,14 @@ const getUserImagesHandler = async (req, res) => {
     if (offset < 0) {
         offset = 0;
     }
-    const images = await Image.find({ createdBy: user._id }).limit(limit).skip(offset);
+    let images = await Image.find({ createdBy: user._id }).limit(limit).skip(offset);
+    images = images.map(image => {
+        return {
+            url: image.url,
+            id: image.uid,
+            createdAt: image.createdAt
+        };
+    });
     return res.send({ images });
 }
 

@@ -14,7 +14,6 @@ const parseCookie = (cookie) => {
 const decorateUser = async (request, reply) => {
     const { cookie } = request.headers;
     const authorization = request.headers['authorization'];
-
     if (!cookie && !authorization) {
         reply.code(401).send({ message: 'Invalid Request' })
     }
