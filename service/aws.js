@@ -26,7 +26,8 @@ const getUploadStream = (fileExtension) => {
             Key: key,
             Body: pass,
             public: true,
-            ContentDisposition: 'attachment'
+            ContentDisposition: 'inline',
+            ContentType: `image/${fileExtension}`
         }).promise(),
         key: key
     };
