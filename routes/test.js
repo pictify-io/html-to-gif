@@ -3,15 +3,16 @@ const healthCheck = async (req, res) => {
 }
 
 const testEmail = async (req, res) => {
-    const sendEmail = require('../service/sendgrid');
+    const { sendEmail } = require('../service/sendgrid');
     const data = {
         userName: 'John Doe',
         email: 'suyashthakur910@gmail.com',
-        subject: 'Welcome to Pictify',
+        subject: 'Welcome to Pictify 🎉',
     };
     const templatePath = 'templates/user/welcome.ejs'
-
     const html = await sendEmail({
+        to: data.email,
+        subject: data.subject,
         data,
         templatePath,
     });
