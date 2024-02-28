@@ -67,7 +67,7 @@ const deleteTemplateSchema = {
         200: {
             type: 'object',
             properties: {
-                template: templateSchema
+                message: { type: 'string' }
             }
         }
     }
@@ -147,7 +147,7 @@ const deleteTemplate = async (req, res) => {
     if (!template) {
         return res.status(404).send({ message: 'Template not found' });
     }
-    return res.send({ template });
+    return res.send({ message: 'Template deleted successfully' });
 }
 
 const searchTemplates = async (req, res) => {

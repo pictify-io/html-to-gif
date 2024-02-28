@@ -34,8 +34,12 @@ const filterActive = function (next) {
 
 apiTokenSchema.pre('save', async function (next) {
     const apiToken = this;
-    apiToken.uid = await uid();
-    apiToken.token = await token();
+    if (!apiToken.uid) {
+        apiToken.uid = await uid();
+    }
+    if (!apiToken.token) {
+        apiToken.token = await token();
+    }
     next();
 });
 

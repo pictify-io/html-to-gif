@@ -48,7 +48,9 @@ const templateSchema = new mongoose.Schema({
 //before saving the template, create uid
 templateSchema.pre('save', async function (next) {
     const template = this;
-    template.uid = await uid();
+    if (!template.uid) {
+        template.uid = await uid();
+    }
     next();
 });
 

@@ -30,9 +30,12 @@ const filterActive = function (next) {
     next();
 };
 
-authTokenSchema.pre('save', function (next) {
+authTokenSchema.pre('save', async function (next) {
     const authToken = this;
-    authToken.uid = uid();
+    if (!authToken.uid) {
+        authToken.uid = await uid();
+    }
+
     next();
 });
 

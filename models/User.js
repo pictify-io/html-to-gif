@@ -3,6 +3,7 @@ const { hash } = require('../util/hash');
 const uid = require('../util/uid');
 const AuthToken = require('./AuthToken');
 const ApiToken = require('./ApiToken');
+const { sendEmail } = require('../service/sendgrid');
 
 const getMonthlyLimit = (plan) => {
     switch (plan) {
@@ -71,14 +72,18 @@ const userSchema = new mongoose.Schema({
 //before saving the user, hash the password and create uid
 userSchema.pre('save', async function (next) {
     const user = this;
+    user.isCreated = this.$isNew;
     user.uid = await uid();
     user.password = hash(user.password);
     next();
 });
 
 userSchema.post('save', async function (user, next) {
-    console.log(user);
-    await ApiToken.create({ user: user._id });
+    console.log('user created', user.isCreated);
+    if (user.isCreated) {
+        await ApiToken.create({ user: user._id });
+        user.sendSignUpEmail();
+    }
     next();
 });
 
@@ -110,6 +115,18 @@ userSchema.methods.getPlanDetails = function () {
     const usage = user.usage.count;
     const nextReset = user.usage.lastReset + 30 * 24 * 60 * 60 * 1000;
     return { monthlyLimit, hasExceededMonthlyLimit, usage, nextReset };
+}
+
+userSchema.methods.sendSignUpEmail = async function () {
+    const user = this;
+    const data = {
+        subject: 'Welcome to Pictify!',
+        templatePath: 'templates/user/welcome.ejs',
+        data: {
+            userName: user.email.split('@')[0]
+        }
+    };
+    await sendEmail({ to: user.email, ...data });
 }
 
 const User = mongoose.model('User', userSchema);
