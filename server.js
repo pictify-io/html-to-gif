@@ -4,7 +4,7 @@ const oauth2Plugin = require('@fastify/oauth2');
 const AutoLoad = require('fastify-autoload');
 const path = require('path');
 const cors = require('@fastify/cors');
-
+const fastifyHttpProxy = require('@fastify/http-proxy');
 const db = require('./db');
 
 db();
@@ -75,8 +75,20 @@ fastify.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
 });
 
-
-
+fastify.register(fastifyHttpProxy, {
+    prefix: '/posthog',
+    replyOptions: {
+        rewriteRequestHeaders: (originalRequest, originalHeaders) => {
+            return {
+                ...originalHeaders,
+                host: 'app.posthog.com',
+                'x-forwarded-for': originalRequest.ip,
+                'x-forwarded-proto': 'https',
+            };
+        },
+    },
+    upstream: 'https://app.posthog.com',
+});
 
 
 

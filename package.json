@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "@fastify/cors": "^8.3.0",
+    "@fastify/http-proxy": "^9.4.0",
     "@fastify/oauth2": "^7.2.2",
     "@fastify/rate-limit": "^8.0.3",
     "@sendgrid/mail": "^8.1.1",
