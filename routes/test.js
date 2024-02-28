@@ -22,7 +22,7 @@ const testEmail = async (req, res) => {
 
 const routes = async (fastify, options) => {
     fastify.get('/healthcheck', healthCheck);
-    fastify.get('/test-email', testEmail);
+    // fastify.get('/test-email', testEmail);
 };
 
 module.exports = routes;
