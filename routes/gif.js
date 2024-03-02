@@ -154,7 +154,7 @@ module.exports = async (fastify) => {
             max: 5,
             timeWindow: '1 minute',
             cache: 10000,
-            allowList: [process.env.FRONTEND_IP]
+            allowList: [process.env.FRONTEND_HOST]
         });
 
         fastify.post('/public', createPublicGifHandler);

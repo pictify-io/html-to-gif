@@ -3,6 +3,7 @@ const { hash } = require('../util/hash');
 const uid = require('../util/uid');
 const AuthToken = require('./AuthToken');
 const ApiToken = require('./ApiToken');
+const ShortToken = require('./ShortToken');
 const { sendEmail } = require('../service/sendgrid');
 
 const getMonthlyLimit = (plan) => {
@@ -74,7 +75,9 @@ userSchema.pre('save', async function (next) {
     const user = this;
     user.isCreated = this.$isNew;
     user.uid = await uid();
-    user.password = hash(user.password);
+    if (user.password) {
+        user.password = hash(user.password);
+    }
     next();
 });
 
@@ -120,10 +123,24 @@ userSchema.methods.getPlanDetails = function () {
 userSchema.methods.sendSignUpEmail = async function () {
     const user = this;
     const data = {
-        subject: 'Welcome to Pictify!',
+        subject: 'Getting started with Pictify',
         templatePath: 'templates/user/welcome.ejs',
         data: {
             userName: user.email.split('@')[0]
+        }
+    };
+    await sendEmail({ to: user.email, ...data });
+}
+
+userSchema.methods.sendResetPasswordEmail = async function () {
+    const user = this;
+    const token = await ShortToken.create({ user: user._id });
+    const data = {
+        subject: 'Reset your password',
+        templatePath: 'templates/user/reset-password.ejs',
+        data: {
+            userName: user.email.split('@')[0],
+            resetPasswordLink: `http://${process.env.FRONTEND_HOST}/reset-password?token=${token.key}`
         }
     };
     await sendEmail({ to: user.email, ...data });

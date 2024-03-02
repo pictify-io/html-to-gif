@@ -1,5 +1,6 @@
 const axios = require('axios');
 const User = require('../models/User');
+const ShortToken = require('../models/ShortToken');
 const { isEmail, isPassword } = require('../util/validator');
 const { compare, hash } = require('../util/hash');
 const decorateUser = require('../plugins/decorate_user');
@@ -38,7 +39,7 @@ module.exports = async (fastify) => {
         }
 
         const user = await User.findOne({ email });
-        if (!user) {    
+        if (!user) {
             return res.status(401).send({ message: 'Invalid email or password' });
         }
 
@@ -50,6 +51,37 @@ module.exports = async (fastify) => {
         return res.loginCallback({
             user
         });
+    }
+
+    const forgotPasswordHandler = async (req, res) => {
+        const { email } = req.body;
+        if (!isEmail(email)) {
+            return res.status(401).send({ message: 'Invalid email' });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).send({ message: 'User not found' });
+        }
+        user.sendResetPasswordEmail();
+        return res.send({ message: 'Reset password email sent' });
+    }
+
+    const resetPasswordHandler = async (req, res) => {
+        const { token, password } = req.body;
+        if (!isPassword(password)) {
+            return res.status(401).send({ message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one number' });
+        }
+        const shortToken = await ShortToken.findOne({ key: token });
+        if (!shortToken) {
+            return res.status(401).send({ message: 'Invalid request' });
+        }
+        const user = await User.findById(shortToken.user);
+        if (!user) {
+            return res.status(401).send({ message: 'Invalid request' });
+        }
+        user.password = await hash(password);
+        await user.save();
+        return res.send({ message: 'Password reset successfully' });
     }
 
     const logoutHandler = async (req, res) => {
@@ -104,6 +136,8 @@ module.exports = async (fastify) => {
             fastify.post('/signup', singUpHandler);
             fastify.post('/login', loginHandler);
             fastify.get('/google/callback', googleLoginCallbackHandler);
+            fastify.post('/forgot-password', forgotPasswordHandler);
+            fastify.post('/reset-password', resetPasswordHandler);
         });
 
         fastify.register(async (fastify) => {
