@@ -1,0 +1,14 @@
+version: '3'
+services:
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data_container:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: pictify-db
+      MONGO_INITDB_ROOT_PASSWORD: pictify-suyash-pass
+
+volumes:
+  mongodb_data_container:
