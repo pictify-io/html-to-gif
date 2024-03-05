@@ -34,13 +34,10 @@ fastify.addHook('onError', (request, reply, error, done) => {
 });
 
 fastify.register(cors, {
-    origin: [
-        /http:\/\/localhost*/,
-    ],
+    origin: '*',
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-
+    credentials: false,
 });
 
 
