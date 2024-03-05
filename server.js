@@ -35,7 +35,11 @@ fastify.addHook('onError', (request, reply, error, done) => {
 
 fastify.register(cors, {
     origin: (origin, cb) => {
-        cb(null, origin) // Allow the request's origin
+        if (!origin) {
+            cb(null, true)
+        } else {
+            cb(null, origin) // Allow the request's origin
+        }
     },
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
