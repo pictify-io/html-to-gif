@@ -55,7 +55,7 @@ fastify.register(oauth2Plugin, {
         auth: oauth2Plugin.GOOGLE_CONFIGURATION
     },
     startRedirectPath: '/login/google',
-    callbackUri: process.env.NODE_ENV === 'production' ? 'https://www.example.com/login/google/callback' : 'http://localhost:3000/auth/google/callback',
+    callbackUri: `${process.env.BACKEND_HOST}/auth/google/callback`,
     callbackUriParams: {
         access_type: 'offline'
     },
