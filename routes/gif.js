@@ -11,6 +11,7 @@ const puppeteer = require('puppeteer');
 
 const browserConfig = {
     headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
 };
 
 const browser = puppeteer.launch(browserConfig);
