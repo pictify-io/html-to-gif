@@ -39,7 +39,7 @@ fastify.register(cors, {
     },
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: false,
+    credentials: true,
 });
 
 
