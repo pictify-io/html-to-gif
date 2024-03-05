@@ -4,7 +4,7 @@ const ApiToken = require('../../models/ApiToken');
 const uid = require('../../util/uid');
 
 const cookieOptions = {
-    domain: process.env.NODE_ENV === 'production' ? 'https://www.example.com' : 'localhost',
+    domain: process.env.FRONTEND_HOST,
     path: '/',
     httpOnly: true,
     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
