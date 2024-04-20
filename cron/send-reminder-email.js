@@ -27,7 +27,10 @@ const sendReminderEmail = async () => {
       to: user.email,
       subject: 'Pictify.io: Need some help?',
       templatePath: 'templates/user/dormant-user-reminder.ejs',
-      from: 'suyash@pictify.io',
+      from: {
+        email: 'suyash@pictify.io',
+        name: 'Suyash: Pictify.io'
+      },
       data: {}
     });
 
