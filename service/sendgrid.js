@@ -16,12 +16,13 @@ const sendEmail = async ({
   to,
   subject,
   templatePath,
-  data
+  data,
+  from
 }) => {
   const html = await getHTML({ data, templatePath });
   const msg = {
     to,
-    from: 'support@pictify.io',
+    from: from || 'support@pictify.io',
     subject,
     html
   }
