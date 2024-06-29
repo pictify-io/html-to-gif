@@ -47,7 +47,6 @@ module.exports = async (fastify) => {
         if (!isPasswordValid) {
             return res.status(401).send({ message: 'Invalid email or password' });
         }
-
         return res.loginCallback({
             user
         });
