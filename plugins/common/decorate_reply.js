@@ -7,13 +7,13 @@ const cookieOptions = {
     domain: process.env.FRONTEND_HOST,
     path: '/',
     httpOnly: true,
-    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
     secure: true,
 }
 
 
 module.exports = fp(async (fastify, opts) => {
     fastify.decorateReply('loginCallback', async function ({ user, payload, isHTML = false }) {
+        cookieOptions.expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
         const userUid = await uid();
         const authToken = new AuthToken({ user: user._id, uid: userUid });
         await authToken.save();
