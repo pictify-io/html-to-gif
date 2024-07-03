@@ -24,10 +24,27 @@ const blogSchema = new mongoose.Schema({
     type: Array,
     default: []
   },
+  slug: {
+    type: String,
+    unique: true
+  },
   status: {
     type: String,
     enum: ['draft', 'published'],
     default: 'draft'
+  },
+  type: {
+    type: String,
+    enum: ['guide', 'article'],
+    default: 'article'
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  readingTime: {
+    type: Number,
+    default: 1
   },
   content: {
     type: String,
@@ -44,13 +61,7 @@ const filterActive = function (next) {
   next();
 };
 
-const createSlug = async function (next) {
-  const blog = this;
-  if (!blog.slug) {
-    blog.slug = blog.title.toLowerCase().replace(/ /g, '-');
-  }
-  next();
-}
+
 
 blogSchema.pre('save', async function (next) {
   const blog = this;
@@ -62,14 +73,14 @@ blogSchema.pre('save', async function (next) {
 });
 
 
-blogSchema.pre('findOne', filterActive, createSlug);
-blogSchema.pre('find', filterActive), createSlug;
-blogSchema.pre('findById', filterActive, createSlug);
-blogSchema.pre('findByIdAndUpdate', filterActive, createSlug);
-blogSchema.pre('findByIdAndRemove', filterActive, createSlug);
-blogSchema.pre('findOneAndUpdate', filterActive, createSlug);
+blogSchema.pre('findOne', filterActive);
+blogSchema.pre('find', filterActive);
+blogSchema.pre('findById', filterActive);
+blogSchema.pre('findByIdAndUpdate', filterActive);
+blogSchema.pre('findByIdAndRemove', filterActive);
+blogSchema.pre('findOneAndUpdate', filterActive);
 
-const Blog = mongoose.model('Blog', blogSchema);
+const Blog = mongoose.model('Blog', blogSchema, 'blogs');
 
 module.exports = Blog;
 
