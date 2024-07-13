@@ -31,10 +31,26 @@ const getBlog = async (req, res) => {
   return res.send({ blog });
 }
 
+const getRecommendedBlog = async (req, res) => {
+  const { limit = 3 } = req.query;
+  const { slug } = req.params;
+  const blog = await Blog.findOne({ slug, status: 'published' });
+  if (!blog) {
+    return res.status(404).send({ message: 'Blog not found' });
+  }
+  const recommendedBlogs = await Blog.aggregate([
+    { $match: { status: 'published', type: blog.type, slug: { $ne: blog.slug } } },
+    { $sample: { size: parseInt(limit) } }
+  ]);
+
+  return res.send({ recommendedBlogs });
+};
+
 module.exports = async (fastify) => {
   fastify.get('/featured', getFeaturedBlog);
   fastify.get('/', getAllBlogs);
   fastify.get('/:slug', getBlog);
+  fastify.get('/:slug/recommended', getRecommendedBlog);
 }
 
 module.exports.autoPrefix = '/blogs';
