@@ -46,11 +46,17 @@ const getRecommendedBlog = async (req, res) => {
   return res.send({ recommendedBlogs });
 };
 
+const getAllBlogLinks = async (req, res) => {
+  const links = await Blog.find({ status: 'published' }).select('slug createdAt');
+  return res.send({ links });
+}
+
 module.exports = async (fastify) => {
   fastify.get('/featured', getFeaturedBlog);
   fastify.get('/', getAllBlogs);
   fastify.get('/:slug', getBlog);
   fastify.get('/:slug/recommended', getRecommendedBlog);
+  fastify.get('/links', getAllBlogLinks);
 }
 
 module.exports.autoPrefix = '/blogs';
