@@ -17,7 +17,7 @@ module.exports = fp(async (fastify, opts) => {
         const userUid = await uid();
         const authToken = new AuthToken({ user: user._id, uid: userUid });
         await authToken.save();
-        this.setCookie('auth-token', authToken.uid, cookieOptions).type('application/json').code(200).send({ success: true, payload });
+        this.setCookie('auth-token', authToken.uid, cookieOptions).type(isHTML ? 'text/html' : 'application/json').send(payload);
     });
     fastify.decorateReply('logout', function ({ payload }) {
         this.clearCookie('auth-token', cookieOptions).code(200).send(payload);
