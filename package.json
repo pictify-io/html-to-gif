@@ -19,6 +19,7 @@
     "@sendgrid/mail": "^8.1.1",
     "aws-sdk": "^2.1429.0",
     "axios": "^1.4.0",
+    "color-thief-node": "^1.0.4",
     "crypto-hash": "^2.0.1",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
