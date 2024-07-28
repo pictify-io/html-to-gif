@@ -24,7 +24,8 @@ module.exports = async (fastify) => {
         const hashedPassword = await hash(password);
         const user = await User.create({ email, password: hashedPassword });
         return res.loginCallback({
-            user
+            user,
+            payload: { message: 'Signed up successfully', user }
         });
     }
 
@@ -48,7 +49,8 @@ module.exports = async (fastify) => {
             return res.status(401).send({ message: 'Invalid email or password' });
         }
         return res.loginCallback({
-            user
+            user,
+            payload: { message: 'Logged in successfully', user }
         });
     }
 
