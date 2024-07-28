@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="font-family: Arial, Helvetica, sans-serif;">
 
 <head>
   <meta charset="UTF-8">
@@ -15,11 +15,10 @@
     html {
       margin: 0;
       padding: 0;
-      height: 400px;
-      width: 900px;
+      height: 100%;
+      width: 100%;
       overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+     }
 
     .container {
       position: relative;
@@ -41,7 +40,6 @@
       left: -100px;
       top: -100px;
       background-color: #ff6b6b;
-      animation: move1 20s infinite alternate;
     }
 
     .blob2 {
@@ -50,7 +48,6 @@
       right: -50px;
       top: 30%;
       background-color: #4ecdc4;
-      animation: move2 25s infinite alternate;
     }
 
     .blob3 {
@@ -59,7 +56,6 @@
       left: 20%;
       bottom: -50px;
       background-color: #45b7d1;
-      animation: move3 22s infinite alternate;
     }
 
     .blob4 {
@@ -68,7 +64,6 @@
       right: 15%;
       top: 10%;
       background-color: #f7b731;
-      animation: move4 18s infinite alternate;
     }
 
     .content {
@@ -85,54 +80,15 @@
     }
 
     h1 {
-      font-size: 3em;
+      font-size: 4rem;
       margin-bottom: 0.5em;
     }
 
     p {
-      font-size: 1.2em;
-      max-width: 600px;
+      font-size: 2em;
+      max-width: 80%;
     }
 
-    @keyframes move1 {
-      0% {
-        transform: translate(0, 0) scale(1);
-      }
-
-      100% {
-        transform: translate(100px, 100px) scale(1.1);
-      }
-    }
-
-    @keyframes move2 {
-      0% {
-        transform: translate(0, 0) rotate(0deg);
-      }
-
-      100% {
-        transform: translate(-50px, 50px) rotate(15deg);
-      }
-    }
-
-    @keyframes move3 {
-      0% {
-        transform: translate(0, 0) scale(1);
-      }
-
-      100% {
-        transform: translate(80px, -80px) scale(0.9);
-      }
-    }
-
-    @keyframes move4 {
-      0% {
-        transform: translate(0, 0) rotate(0deg);
-      }
-
-      100% {
-        transform: translate(60px, 60px) rotate(-10deg);
-      }
-    }
   </style>
 </head>
 
@@ -143,9 +99,11 @@
     <div class="blob blob3"></div>
     <div class="blob blob4"></div>
     <div class="content">
-      <h1>Welcome to Blob World</h1>
-      <p>This is an example of a multiple blob pattern background. The blobs are animated to create a fluid, organic
-        feel.</p>
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+        style=" margin-left: auto; margin-right: auto;" id="template-logo" width="150">
+      <h1 id="template-heading">HTML To Image API</h1>
+      <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
+        developers to generate images from HTML at scale with ease.</p>
     </div>
   </div>
 </body>
