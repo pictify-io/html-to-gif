@@ -75,6 +75,17 @@ const getProducts = async (request, reply) => {
       request_per_month: slugRequestPerMonthMap[product.attributes.slug],
     }
   }).sort((a, b) => a.price - b.price);
+  products = [
+    {
+      id: 'free',
+      name: 'Starter',
+      price: 0,
+      price_formatted: 'Free',
+      purchase_url: null,
+      request_per_month: 50,
+    },
+    ...products,
+  ]
 
   return { success: true, data: products };
 };
