@@ -6,18 +6,8 @@ const ApiToken = require('./ApiToken');
 const ShortToken = require('./ShortToken');
 const { sendEmail } = require('../service/sendgrid');
 
-const getMonthlyLimit = (plan) => {
-    switch (plan) {
-        case 'free':
-            return 1000;
-        case 'basic':
-            return 10000;
-        case 'premium':
-            return 100000;
-        default:
-            return 0;
-    }
-};
+const { getRequestLimit, convertPlanToSlug } = require('../util/plan');
+
 
 const userSchema = new mongoose.Schema({
     uid: {
@@ -50,11 +40,14 @@ const userSchema = new mongoose.Schema({
     currentPlan: {
         type: String,
         default: 'free',
-        enum: ['free', 'free', 'basic', 'premium'],
         required: true
     },
     usage: {
         count: {
+            type: Number,
+            default: 0
+        },
+        proratedUsage: {
             type: Number,
             default: 0
         },
@@ -63,7 +56,6 @@ const userSchema = new mongoose.Schema({
             default: Date.now
         }
     },
-
     createdAt: {
         type: Date,
         default: Date.now
@@ -103,17 +95,23 @@ userSchema.methods.hasExceededMonthlyLimit = function () {
         // Reset the count and lastReset fields
         user.usage.count = 0;
         user.usage.lastReset = Date.now();
+        user.usage.proratedUsage = 0;
         user.save();
     }
 
     // Check if the user has exceeded their monthly limit
-    const monthlyLimit = getMonthlyLimit(user.currentPlan);
-    return user.usage.count >= monthlyLimit;
+    const plan = convertPlanToSlug(user.currentPlan);
+    const monthlyLimit = getRequestLimit(plan);
+    const proratedUsage = user.usage.proratedUsage || 0;
+    return user.usage.count >= monthlyLimit + proratedUsage;
 };
 
 userSchema.methods.getPlanDetails = function () {
     const user = this;
-    const monthlyLimit = getMonthlyLimit(user.currentPlan);
+    const plan = convertPlanToSlug(user.currentPlan);
+    console.log('plan', plan);
+    const monthlyLimit = getRequestLimit(plan);
+    console.log('monthlyLimit', monthlyLimit);
     const hasExceededMonthlyLimit = user.hasExceededMonthlyLimit();
     const usage = user.usage.count;
     const nextReset = user.usage.lastReset + 30 * 24 * 60 * 60 * 1000;
@@ -144,6 +142,17 @@ userSchema.methods.sendResetPasswordEmail = async function () {
         }
     };
     await sendEmail({ to: user.email, ...data });
+}
+
+userSchema.methods.calculateProration = function (newPlan) {
+    const user = this;
+    const plan = convertPlanToSlug(user.currentPlan);
+    if (plan === newPlan || plan === 'starter') {
+        return 0;
+    }
+    const currentMonthlyLimit = getRequestLimit(plan);
+    const proratedUsage = Math.max(currentMonthlyLimit - user.usage.count, 0);
+    return proratedUsage;
 }
 
 const User = mongoose.model('User', userSchema);
