@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
         default: 'free',
         required: true
     },
+    lemonSqueezyCustomerId: {
+        type: Number,
+        default: null
+    },
     usage: {
         count: {
             type: Number,
