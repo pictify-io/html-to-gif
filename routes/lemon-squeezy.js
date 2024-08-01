@@ -110,7 +110,6 @@ module.exports = webhook;
 
 
 module.exports = async (fastify) => {
-
   fastify.register(async (fastify) => {
     fastify.post('/webhook', webhook);
   });

@@ -42,8 +42,8 @@ lemonSqueezySetup({
 
 
 
-const getProducts = async (request, reply) => {
-  let products = await listProducts({
+const getProducts = async (fastify, request, reply) => {
+  products = await listProducts({
     page: { number: 1, size: 20 },
     filter: { storeId: 110208 }
   });
@@ -68,14 +68,25 @@ const getProducts = async (request, reply) => {
       request_per_month: 50,
     },
     ...products,
-  ]
+  ];
+
+  fastify.cache.set('products', products, 60 * 60 * 24, (err) => {
+    if (err) return reply.send(err)
+    reply.send({ success: true, data: products });
+  })
 
   return { success: true, data: products };
 };
 
 
 module.exports = async (fastify) => {
-  fastify.get('/', getProducts);
+  const fastifyCaching = require('@fastify/caching');
+  fastify.register(fastifyCaching, {
+    privacy: fastifyCaching.privacy.NOCACHE,
+    expiresIn: 60 * 60 * 24,
+  }, (err) => { if (err) throw err });
+
+  fastify.get('/', async (request, reply) => { return getProducts(fastify, request, reply) });
 }
 
 module.exports.autoPrefix = '/products';
