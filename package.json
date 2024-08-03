@@ -4,7 +4,8 @@
   "description": "A simple library to convert html to gif",
   "main": "index.js",
   "scripts": {
-    "test": "node test"
+    "test": "node test",
+    "format": "prettier --write ."
   },
   "author": "suyash-thakur",
   "license": "MIT",
@@ -21,11 +22,14 @@
     "crypto-hash": "^2.0.1",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
     "fastify": "^4.21.0",
     "fastify-autoload": "^3.13.0",
     "mongoose": "^7.4.2",
     "nanoid": "^4.0.2",
     "nodemon": "^3.0.1",
+    "prettier": "^3.3.3",
     "puppeteer": "^20.9.0",
     "sharp": "^0.32.4"
   }

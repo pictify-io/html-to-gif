@@ -1,21 +1,21 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const emailLogSchema = new mongoose.Schema({
   user: {
     type: String,
     required: true,
-    ref: 'User'
+    ref: 'User',
   },
   type: {
     type: String,
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
-});
+    default: Date.now,
+  },
+})
 
-const EmailLog = mongoose.model('EmailLog', emailLogSchema);
+const EmailLog = mongoose.model('EmailLog', emailLogSchema)
 
-module.exports = EmailLog;
+module.exports = EmailLog
