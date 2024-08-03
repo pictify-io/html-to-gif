@@ -1,5 +1,8 @@
-const { lemonSqueezySetup, listProducts } = require('@lemonsqueezy/lemonsqueezy.js');
-const { getRequestLimit } = require('../util/plan');
+const {
+  lemonSqueezySetup,
+  listProducts,
+} = require('@lemonsqueezy/lemonsqueezy.js')
+const { getRequestLimit } = require('../util/plan')
 
 // **Free**: 50 requests per month - Starter
 
@@ -31,33 +34,31 @@ const { getRequestLimit } = require('../util/plan');
 
 //   ** $1, 799 **: 1,000,000 requests per month - Ultimate
 
-
-
 lemonSqueezySetup({
   apiKey: process.env.LEMONSQUEEZY_API_KEY,
   onError: (error) => {
-    console.error(error);
-  }
-});
-
-
+    console.error(error)
+  },
+})
 
 const getProducts = async (fastify, request, reply) => {
   products = await listProducts({
     page: { number: 1, size: 20 },
-    filter: { storeId: 110208 }
-  });
+    filter: { storeId: 110208 },
+  })
 
-  products = products.data.data.map((product) => {
-    return {
-      id: product.attributes.id,
-      name: product.attributes.name,
-      price: product.attributes.price,
-      price_formatted: product.attributes.price_formatted,
-      purchase_url: product.attributes.buy_now_url,
-      request_per_month: getRequestLimit(product.attributes.slug),
-    }
-  }).sort((a, b) => a.price - b.price);
+  products = products.data.data
+    .map((product) => {
+      return {
+        id: product.attributes.id,
+        name: product.attributes.name,
+        price: product.attributes.price,
+        price_formatted: product.attributes.price_formatted,
+        purchase_url: product.attributes.buy_now_url,
+        request_per_month: getRequestLimit(product.attributes.slug),
+      }
+    })
+    .sort((a, b) => a.price - b.price)
   products = [
     {
       id: 'free',
@@ -68,25 +69,32 @@ const getProducts = async (fastify, request, reply) => {
       request_per_month: 50,
     },
     ...products,
-  ];
+  ]
 
   fastify.cache.set('products', products, 60 * 60 * 24, (err) => {
     if (err) return reply.send(err)
-    reply.send({ success: true, data: products });
+    reply.send({ success: true, data: products })
   })
 
-  return { success: true, data: products };
-};
-
-
-module.exports = async (fastify) => {
-  const fastifyCaching = require('@fastify/caching');
-  fastify.register(fastifyCaching, {
-    privacy: fastifyCaching.privacy.NOCACHE,
-    expiresIn: 60 * 60 * 24,
-  }, (err) => { if (err) throw err });
-
-  fastify.get('/', async (request, reply) => { return getProducts(fastify, request, reply) });
+  return { success: true, data: products }
 }
 
-module.exports.autoPrefix = '/products';
+module.exports = async (fastify) => {
+  const fastifyCaching = require('@fastify/caching')
+  fastify.register(
+    fastifyCaching,
+    {
+      privacy: fastifyCaching.privacy.NOCACHE,
+      expiresIn: 60 * 60 * 24,
+    },
+    (err) => {
+      if (err) throw err
+    }
+  )
+
+  fastify.get('/', async (request, reply) => {
+    return getProducts(fastify, request, reply)
+  })
+}
+
+module.exports.autoPrefix = '/products'
