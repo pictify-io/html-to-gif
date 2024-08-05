@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
   },
   currentPlan: {
     type: String,
-    default: 'free',
+    default: 'starter',
     required: true,
   },
   lemonSqueezyCustomerId: {
