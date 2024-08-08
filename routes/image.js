@@ -1,3 +1,23 @@
+const puppeteer = require('puppeteer')
+const genericPool = require('generic-pool')
+
+const browserConfig = {
+  headless: 'new',
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+}
+
+const browserPool = genericPool.createPool(
+  {
+    create: async () => await puppeteer.launch(browserConfig),
+    destroy: async (browser) => await browser.close(),
+  },
+  {
+    min: 2,
+    max: 10,
+    acquireTimeoutMillis: 60000,
+  }
+)
+
 const captureImages = require('../lib/image')
 const verifyApiToken = require('../plugins/verify_api_token')
 const decorateUser = require('../plugins/decorate_user')
@@ -6,15 +26,6 @@ const Image = require('../models/Image')
 const Template = require('../models/Template')
 
 const rateLimit = require('@fastify/rate-limit')
-
-const puppeteer = require('puppeteer')
-
-const browserConfig = {
-  headless: 'new',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-}
-
-const browser = puppeteer.launch(browserConfig)
 
 const createImageHandler = async (req, res) => {
   const { user } = req
@@ -27,6 +38,7 @@ const createImageHandler = async (req, res) => {
     selector,
   } = req.body
   let { html } = req.body
+
   if (templateUid) {
     const template = await Template.findOne({
       uid: templateUid,
@@ -35,13 +47,13 @@ const createImageHandler = async (req, res) => {
     if (!template) {
       return res.status(403).send({ error: 'Template not found' })
     }
-
     html = await template.populateTemplate(variables)
   }
-  console.log(html)
 
   let image
+  let browser
   try {
+    browser = await browserPool.acquire()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
@@ -57,6 +69,10 @@ const createImageHandler = async (req, res) => {
   } catch (err) {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
+  } finally {
+    if (browser) {
+      await browserPool.release(browser)
+    }
   }
 
   if (!image) {
@@ -123,7 +139,9 @@ const getImageHandler = async (req, res) => {
 const createPublicImageHandler = async (req, res) => {
   const { html, url, width, height } = req.body
   let image
+  let browser
   try {
+    browser = await browserPool.acquire()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,

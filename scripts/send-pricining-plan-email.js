@@ -3,15 +3,13 @@ const User = require('../models/User')
 const { sendEmail } = require('../service/sendgrid')
 const EmailLog = require('../models/EmailLog')
 
-const type = 'PRICING_PLAN_EMAIL';
+const type = 'PRICING_PLAN_EMAIL'
 
 const sendPricingPlanEmail = async () => {
-  const users = await User.find().sort({ createdAt: -1 }).limit(40);
+  const users = await User.find().sort({ createdAt: -1 }).limit(40)
 
   for (const user of users) {
-    console.log(
-      `Sending pricing plan email to ${user.email}`
-    )
+    console.log(`Sending pricing plan email to ${user.email}`)
     const isEmailSent = await EmailLog.findOne({
       user: user._id,
       type,
@@ -36,9 +34,8 @@ const sendPricingPlanEmail = async () => {
     await EmailLog.create({
       user: user._id,
       type,
-    });
+    })
   }
-
 }
 
 const main = async () => {
@@ -49,4 +46,4 @@ const main = async () => {
   process.exit(0)
 }
 
-main();
+main()

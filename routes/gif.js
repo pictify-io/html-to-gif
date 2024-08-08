@@ -8,16 +8,30 @@ const Template = require('../models/Template')
 const rateLimit = require('@fastify/rate-limit')
 
 const puppeteer = require('puppeteer')
+const genericPool = require('generic-pool')
 
 const browserConfig = {
   headless: 'new',
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
-const browser = puppeteer.launch(browserConfig)
+// Define the browserPool before it's used
+const browserPool = genericPool.createPool(
+  {
+    create: async () => await puppeteer.launch(browserConfig),
+    destroy: async (browser) => await browser.close(),
+  },
+  {
+    min: 2,
+    max: 10,
+    acquireTimeoutMillis: 60000,
+  }
+)
 
 const createGifHandler = async (req, res) => {
   const { user } = req
+  let browser
+
   const {
     url,
     width,
@@ -26,8 +40,11 @@ const createGifHandler = async (req, res) => {
     framesPerSecond,
     selector,
   } = req.body
+
   let { html } = req.body
+
   let gif
+
   if (templateUid) {
     const template = await Template.findOne({
       uid: templateUid,
@@ -38,7 +55,9 @@ const createGifHandler = async (req, res) => {
     }
     html = await template.populateTemplate(variables)
   }
+
   try {
+    browser = await browserPool.acquire()
     const { url: gifLink, metadata } = await createGif({
       html,
       url,
@@ -55,6 +74,10 @@ const createGifHandler = async (req, res) => {
   } catch (err) {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
+  } finally {
+    if (browser) {
+      await browserPool.release(browser)
+    }
   }
 
   if (!gif) {
@@ -107,7 +130,9 @@ const getGifHandler = async (req, res) => {
 const createPublicGifHandler = async (req, res) => {
   const { html, url, width, height, framesPerSecond } = req.body
   let gif
+  let browser
   try {
+    browser = await browserPool.acquire()
     const { url: gifLink, metadata } = await createGif({
       html,
       url,

@@ -55,7 +55,9 @@ const getProducts = async (fastify, request, reply) => {
         price: product.attributes.price,
         price_formatted: product.attributes.price_formatted,
         purchase_url: product.attributes.buy_now_url,
-        request_per_month: getRequestLimit(convertPlanToSlug(product.attributes.name)),
+        request_per_month: getRequestLimit(
+          convertPlanToSlug(product.attributes.name)
+        ),
       }
     })
     .sort((a, b) => a.price - b.price)
