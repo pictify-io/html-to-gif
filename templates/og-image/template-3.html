@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Roboto', sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image - Dark Mode with Accent</title>
+  <style>
+    :root {
+      --primary-color: #1a1a1a;
+      --secondary-color: #ff4d4d;
+    }
+
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .container {
+      width: 1200px;
+      height: 630px;
+      background-color: var(--primary-color);
+      display: flex;
+      padding: 50px;
+      box-sizing: border-box;
+    }
+
+    .left-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .right-column {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #template-logo {
+      width: 100px;
+      margin-bottom: 30px;
+    }
+
+    #template-heading {
+      font-size: 64px;
+      color: #ffffff;
+      margin: 0 0 20px;
+    }
+
+    #template-subheading {
+      font-size: 24px;
+      color: #cccccc;
+      line-height: 1.4;
+    }
+
+    .accent-circle {
+      width: 300px;
+      height: 300px;
+      background-color: var(--secondary-color);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="left-column">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+        id="template-logo">
+      <h1 id="template-heading">HTML To Image API</h1>
+      <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
+        developers to generate images from HTML at scale with ease.</p>
+    </div>
+    <div class="right-column">
+      <div class="accent-circle"></div>
+    </div>
+  </div>
+</body>
+
+</html>

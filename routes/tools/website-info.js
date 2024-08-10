@@ -46,9 +46,15 @@ const getTemplate = async (req, res) => {
   return res.type('text/html').send(html);
 }
 
+const getAllTemplates = async (req, res) => {
+  const templates = fs.readdirSync(path.join(__dirname, '../../templates', 'og-image'));
+  return res.send(templates);
+}
+
 module.exports = async (fastify) => {
   fastify.get('/website-info', websiteInfo);
   fastify.get('/templates/og-image', getTemplate);
+  fastify.get('/templates/og-image/all', getAllTemplates);
 }
 
 

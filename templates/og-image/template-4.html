@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Montserrat', sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image - Geometric Pattern</title>
+  <style>
+    :root {
+      --primary-color: #f0f0f0;
+      --secondary-color: #333;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .container {
+      width: 1200px;
+      height: 630px;
+      background-color: var(--primary-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: linear-gradient(45deg, #000 25%, transparent 25%),
+        linear-gradient(-45deg, #000 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #000 75%),
+        linear-gradient(-45deg, transparent 75%, #000 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      opacity: 0.1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding: 50px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    #template-logo {
+      width: 150px;
+      margin-bottom: 40px;
+    }
+
+    #template-heading {
+      font-size: 72px;
+      color: var(--secondary-color);
+      margin: 0 0 20px;
+      text-transform: uppercase;
+    }
+
+    #template-subheading {
+      font-size: 24px;
+      color: var(--secondary-color);
+      max-width: 80%;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="pattern"></div>
+    <div class="content">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+        id="template-logo">
+      <h1 id="template-heading">HTML To Image API</h1>
+      <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
+        developers to generate images from HTML at scale with ease.</p>
+    </div>
+  </div>
+</body>
+
+</html>

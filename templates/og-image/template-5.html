@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Poppins', sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image - Colorful Waves</title>
+  <style>
+    :root {
+      --primary-color: #ffffff;
+      --secondary-color: #333;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .container {
+      width: 1200px;
+      height: 630px;
+      background-color: var(--primary-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wave {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
+      border-radius: 40%;
+      animation: wave 15s infinite linear;
+    }
+
+    .wave1 {
+      background-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .wave2 {
+      background-color: rgba(33, 150, 243, 0.3);
+      animation-delay: -5s;
+    }
+
+    .wave3 {
+      background-color: rgba(255, 193, 7, 0.3);
+      animation-delay: -10s;
+    }
+
+    @keyframes wave {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      padding: 50px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    #template-logo {
+      width: 120px;
+      margin-bottom: 30px;
+    }
+
+    #template-heading {
+      font-size: 64px;
+      color: #333;
+      margin: 0 0 20px;
+      font-weight: 700;
+    }
+
+    #template-subheading {
+      font-size: 22px;
+      color: #555;
+      max-width: 70%;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="wave wave1"></div>
+    <div class="wave wave2"></div>
+    <div class="wave wave3"></div>
+    <div class="content">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+        id="template-logo">
+      <h1 id="template-heading">HTML To Image API</h1>
+      <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
+        developers to generate images from HTML at scale with ease.</p>
+    </div>
+  </div>
+</body>
+
+</html>
