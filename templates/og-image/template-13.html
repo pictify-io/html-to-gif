@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image - Animated Gradient</title>
+  <style>
+    :root {
+      --primary-color: #000000;
+      --secondary-color: #ffffff;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(-45deg,
+          var(--primary-color),
+          color-mix(in srgb, var(--primary-color) 70%, #ee7752),
+          color-mix(in srgb, var(--primary-color) 70%, #23a6d5),
+          color-mix(in srgb, var(--primary-color) 70%, #23d5ab));
+      background-size: 400% 400%;
+      background-position: 100% 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {}
+    }
+
+    .content {
+      background: color-mix(in srgb, var(--secondary-color) 10%, transparent);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      color: var(--secondary-color);
+    }
+
+    #template-logo {
+      width: 120px;
+      margin-bottom: 30px;
+    }
+
+    #template-heading {
+      font-size: 64px;
+      margin: 0 0 20px;
+      font-weight: 700;
+    }
+
+    #template-subheading {
+      font-size: 24px;
+      max-width: 80%;
+      margin: 0 auto;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="content">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+        id="template-logo">
+      <h1 id="template-heading">HTML To Image API</h1>
+      <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
+        developers to generate images from HTML at scale with ease.</p>
+    </div>
+  </div>
+</body>
+
+</html>

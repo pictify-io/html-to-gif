@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Courier New', Courier, monospace;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image - Brutalist</title>
+  <style>
+    :root {
+      --primary-color: #000000;
+      --secondary-color: #ffffff;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      background-color: #ffff00;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 10px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .box {
+      background-color: #000000;
+      border: 5px solid #000000;
+    }
+
+    #template-logo {
+      grid-column: 1 / 4;
+      grid-row: 1 / 3;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background-color: #ffffff;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #template-heading {
+      grid-column: 4 / -1;
+      grid-row: 1 / 3;
+      font-size: 64px;
+      color: #000000;
+      margin: 0;
+      padding: 20px;
+      background-color: #ff0000;
+      display: flex;
+      align-items: center;
+    }
+
+    #template-subheading {
+      grid-column: 1 / -1;
+      grid-row: 3 / -1;
+      font-size: 32px;
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+      background-color: #0000ff;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+      id="template-logo" class="box">
+    <h1 id="template-heading" class="box">HTML To Image API</h1>
+    <p id="template-subheading" class="box">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io.
+      Perfect for developers to generate images from HTML at scale with ease.</p>
+  </div>
+</body>
+
+</html>

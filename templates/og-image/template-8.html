@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Inter', sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OG Image - Glassmorphism</title>
+  <style>
+    :root {
+      --primary-color: #000000;
+      --secondary-color: #ffffff;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .container {
+      width: 1200px;
+      height: 630px;
+      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 40px;
+      width: 80%;
+      text-align: center;
+    }
+
+    #template-logo {
+      width: 120px;
+      margin-bottom: 30px;
+    }
+
+    #template-heading {
+      font-size: 64px;
+      color: var(--secondary-color);
+      margin: 0 0 20px;
+      font-weight: 700;
+    }
+
+    #template-subheading {
+      font-size: 24px;
+      color: var(--secondary-color);
+      max-width: 80%;
+      margin: 0 auto;
+      line-height: 1.4;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+    }
+
+    .blob1 {
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 0, 0, 0.2);
+      top: -100px;
+      left: -100px;
+    }
+
+    .blob2 {
+      width: 200px;
+      height: 200px;
+      background: rgba(0, 0, 255, 0.2);
+      bottom: -50px;
+      right: -50px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="glass">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+        id="template-logo">
+      <h1 id="template-heading">HTML To Image API</h1>
+      <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
+        developers to generate images from HTML at scale with ease.</p>
+    </div>
+  </div>
+</body>
+
+</html>
