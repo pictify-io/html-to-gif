@@ -6,11 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OG Image - Retro Tech</title>
   <style>
-    :root {
-      --primary-color: #000000;
-      --secondary-color: #ffffff;
-    }
-
     body,
     html {
       margin: 0;
@@ -20,9 +15,9 @@
     }
 
     .container {
-      width: 1200px;
-      height: 630px;
-      background-color: var(--primary-color);
+      width: 100%;
+      height: 100%;
+      background-color: #000000;
       color: #00ff00;
       display: flex;
       flex-direction: column;
@@ -39,25 +34,24 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, .2) 50%, rgba(0, 0, 0, .2));
+      background: linear-gradient(to bottom, 
+        rgba(255, 255, 255, 0.05), 
+        rgba(255, 255, 255, 0.05) 50%, 
+        rgba(0, 0, 0, 0.2) 50%, 
+        rgba(0, 0, 0, 0.2));
       background-size: 100% 4px;
       animation: scanline 10s linear infinite;
     }
 
     @keyframes scanline {
-      0% {
-        background-position: 0 0;
-      }
-
-      100% {
-        background-position: 0 100%;
-      }
+       0% { background-position: 0 0; }
+      100% { background-position: 0 100%; }
     }
 
     #template-logo {
-      width: 150px;
       margin-bottom: 30px;
-      filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+      object-fit: contain;
+      filter: drop-shadow(0 0 10px #00ff00);
     }
 
     #template-heading {
@@ -80,8 +74,10 @@
   <div class="container">
     <div class="scanline"></div>
     <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
-      id="template-logo">
-    <h1 id="template-heading">HTML To Image API</h1>
+      id="template-logo"
+      width="100px"
+      >
+    <h1 id="template-heading">OG Image Generator</h1>
     <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
       developers to generate images from HTML at scale with ease.</p>
   </div>
