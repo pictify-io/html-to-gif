@@ -3,6 +3,7 @@ const {
   listProducts,
 } = require('@lemonsqueezy/lemonsqueezy.js')
 const { getRequestLimit, convertPlanToSlug } = require('../util/plan')
+const LRU = require('lru-cache')
 
 // **Free**: 50 requests per month - Starter
 
@@ -41,7 +42,17 @@ lemonSqueezySetup({
   },
 })
 
+const cache = new LRU({
+  max: 100,
+  ttl: 1000 * 60 * 60 * 24, // 24 hours
+})
+
 const getProducts = async (fastify, request, reply) => {
+  const cachedProducts = cache.get('products')
+  if (cachedProducts) {
+    return { success: true, data: cachedProducts }
+  }
+
   products = await listProducts({
     page: { number: 1, size: 20 },
     filter: { storeId: 110208 },
@@ -73,27 +84,11 @@ const getProducts = async (fastify, request, reply) => {
     ...products,
   ]
 
-  fastify.cache.set('products', products, 60 * 60 * 24, (err) => {
-    if (err) return reply.send(err)
-    reply.send({ success: true, data: products })
-  })
-
+  cache.set('products', products)
   return { success: true, data: products }
 }
 
 module.exports = async (fastify) => {
-  const fastifyCaching = require('@fastify/caching')
-  fastify.register(
-    fastifyCaching,
-    {
-      privacy: fastifyCaching.privacy.NOCACHE,
-      expiresIn: 60 * 60 * 24,
-    },
-    (err) => {
-      if (err) throw err
-    }
-  )
-
   fastify.get('/', async (request, reply) => {
     return getProducts(fastify, request, reply)
   })
