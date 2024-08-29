@@ -3,7 +3,7 @@ const {
   listProducts,
 } = require('@lemonsqueezy/lemonsqueezy.js')
 const { getRequestLimit, convertPlanToSlug } = require('../util/plan')
-const LRU = require('lru-cache')
+const { LRUCache } = require('lru-cache')
 
 // **Free**: 50 requests per month - Starter
 
@@ -42,7 +42,7 @@ lemonSqueezySetup({
   },
 })
 
-const cache = new LRU({
+const cache = new LRUCache({
   max: 100,
   ttl: 1000 * 60 * 60 * 24, // 24 hours
 })
