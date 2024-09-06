@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Roboto', Arial, sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Template</title>
+  <style>
+    :root {
+      --primary-color: #4CAF50;
+      --secondary-color: #E8F5E9;
+      --accent-color: #2E7D32;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background-color: #f0f0f0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      box-sizing: border-box;
+      background-color: #ffffff;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      max-width: 150px;
+    }
+
+    .company-info {
+      text-align: right;
+      color: var(--accent-color);
+    }
+
+    .invoice-details {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: var(--secondary-color);
+      border-radius: 10px;
+    }
+
+    .invoice-id {
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .client-info {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-left: 5px solid var(--primary-color);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
+    .table th,
+    .table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .table thead {
+      background-color: var(--primary-color);
+      color: #ffffff;
+    }
+
+    .table tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    .total {
+      text-align: right;
+      font-size: 18px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: var(--secondary-color);
+      border-radius: 10px;
+    }
+
+    .notes {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Company Logo"
+        class="logo">
+      <div class="company-info">
+        <h2 id="company-name">Pictify.io</h2>
+        <p id="company-address">123 Main St, Anytown, USA</p>
+      </div>
+    </div>
+
+    <div class="invoice-details">
+      <div>
+        <div class="invoice-id" id="invoice-number">123456</div>
+        <div id="invoice-date">Invoice Date: 2024-01-01</div>
+      </div>
+      <div id="due-date">
+        <h3>Due Date</h3>
+        <p>2024-01-31</p>
+      </div>
+    </div>
+
+    <div class="client-info">
+      <h2>Bill To:</h2>
+      <h3 id="client-name">John Doe</h3>
+      <p id="client-address">123 Main St, Anytown, USA</p>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="line-items">
+        <tr>
+          <td>Website Design</td>
+          <td>1</td>
+          <td>$1000</td>
+          <td>$1000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="total">
+      <p>Subtotal: $<span id="subtotal">1000</span></p>
+      <p>Tax: $<span id="tax-amount">100</span></p>
+      <p>Total: $<span id="total-amount">1100</span></p>
+    </div>
+
+    <div class="notes">
+      <h3>Additional Notes:</h3>
+      <p id="additional-notes">Thank you for your business!</p>
+    </div>
+
+    <div class="footer">
+      <p>We appreciate your prompt payment!</p>
+    </div>
+  </div>
+</body>
+
+</html>

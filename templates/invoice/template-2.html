@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Template</title>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #f4f4f4;
+      --accent-color: #2c3e50;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background-color: var(--secondary-color);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      box-sizing: border-box;
+      background-color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--primary-color);
+    }
+
+    .logo {
+      max-width: 120px;
+    }
+
+    .company-info {
+      text-align: right;
+      color: var(--accent-color);
+    }
+
+    .invoice-details {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 30px;
+    }
+
+    .invoice-id {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .client-info {
+      background-color: var(--secondary-color);
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 30px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+      margin-bottom: 30px;
+    }
+
+    .table th,
+    .table td {
+      padding: 15px;
+      text-align: left;
+    }
+
+    .table thead {
+      background-color: var(--accent-color);
+      color: #ffffff;
+    }
+
+    .table tbody tr {
+      background-color: var(--secondary-color);
+    }
+
+    .total {
+      text-align: right;
+      font-size: 18px;
+      margin-bottom: 30px;
+      background-color: var(--accent-color);
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+    }
+
+    .notes {
+      background-color: var(--secondary-color);
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 30px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: var(--accent-color);
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Company Logo"
+        class="logo">
+      <div class="company-info">
+        <h2 id="company-name">Pictify.io</h2>
+        <p id="company-address">123 Main St, Anytown, USA</p>
+      </div>
+    </div>
+
+    <div class="invoice-details">
+      <div class="invoice-id" id="invoice-number">123456</div>
+      <div id="invoice-date">Invoice Date: 2024-01-01</div>
+      <div id="due-date">Due Date: 2024-01-31</div>
+    </div>
+
+    <div class="client-info">
+      <h2>Bill To:</h2>
+      <h3 id="client-name">John Doe</h3>
+      <p id="client-address">123 Main St, Anytown, USA</p>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="line-items">
+        <tr>
+          <td>Website Design</td>
+          <td>1</td>
+          <td>$1000</td>
+          <td>$1000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="total">
+      <p>Subtotal: $<span id="subtotal">1000</span></p>
+      <p>Tax: $<span id="tax-amount">100</span></p>
+      <p>Total: $<span id="total-amount">1100</span></p>
+    </div>
+
+    <div class="notes">
+      <h3>Additional Notes:</h3>
+      <p id="additional-notes">Thank you for your business!</p>
+    </div>
+
+    <div class="footer">
+      <p>Thank you for choosing Pictify.io!</p>
+    </div>
+  </div>
+</body>
+
+</html>

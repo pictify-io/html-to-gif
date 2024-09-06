@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" style="font-family: Arial, Helvetica, sans-serif;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Template</title>
+  <style>
+    :root {
+      --primary-color: #000000;
+      --secondary-color: #ffffff;
+      --accent-color: #000000;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      box-sizing: border-box;
+      background-color: var(--secondary-color);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      max-width: 100px;
+    }
+
+    .company-info {
+      text-align: right;
+    }
+
+    .invoice-details {
+      margin-bottom: 30px;
+    }
+
+    .invoice-id {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent-color);
+      margin-bottom: 10px;
+    }
+
+    .client-info {
+      margin-bottom: 30px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
+    .table th,
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    .total {
+      text-align: right;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .total p {
+      margin: 5px 0;
+    }
+
+    .notes {
+      margin-bottom: 30px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Company Logo"
+        class="logo">
+      <div class="company-info">
+        <h2 id="company-name">Pictify.io</h2>
+        <p id="company-address">123 Main St, Anytown, USA</p>
+      </div>
+    </div>
+
+    <div class="invoice-details">
+      <div class="invoice-id" id="invoice-number">123456</div>
+      <div id="invoice-date">
+        <p>Invoice Date: 2024-01-01</p>
+      </div>
+      <div id="due-date">
+        <p>Due Date: 2024-01-31</p>
+      </div>
+    </div>
+
+    <div class="client-info">
+      <h2>Bill To:</h2>
+      <h3 id="client-name">John Doe</h3>
+      <p id="client-address">123 Main St, Anytown, USA</p>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="line-items">
+        <tr>
+          <td>Website Design</td>
+          <td>1</td>
+          <td>$1000</td>
+          <td>$1000</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="total">
+      <p>Subtotal: <span id="subtotal">1000</span></p>
+      <p>Tax: <span id="tax-amount">100</span></p>
+      <p>Total: <span id="total-amount">1100</span></p>
+    </div>
+
+    <div class="notes">
+      <h3>Additional Notes:</h3>
+      <p id="additional-notes">
+        Thank you for your business!
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>Thank you for your business!</p>
+    </div>
+  </div>
+</body>
+
+</html>

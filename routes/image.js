@@ -137,7 +137,7 @@ const getImageHandler = async (req, res) => {
 }
 
 const createPublicImageHandler = async (req, res) => {
-  const { html, url, width, height } = req.body
+  const { html, url, width, height, selector } = req.body
   let image
   let browser
   try {
@@ -147,6 +147,7 @@ const createPublicImageHandler = async (req, res) => {
       url,
       width,
       height,
+      selector,
       browser,
     })
     image = {
