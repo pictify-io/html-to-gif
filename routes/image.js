@@ -6,6 +6,7 @@ const browserConfig = {
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 }
 
+
 const browserPool = genericPool.createPool(
   {
     create: async () => await puppeteer.launch(browserConfig),
@@ -14,13 +15,14 @@ const browserPool = genericPool.createPool(
   {
     min: 2,
     max: 10,
-    acquireTimeoutMillis: 60000,
+    acquireTimeoutMillis: 2000,
   }
 )
 
 const captureImages = require('../lib/image')
 const verifyApiToken = require('../plugins/verify_api_token')
 const decorateUser = require('../plugins/decorate_user')
+const getRenderedHTML = require('../lib/page-content')
 
 const Image = require('../models/Image')
 const Template = require('../models/Template')
@@ -53,7 +55,13 @@ const createImageHandler = async (req, res) => {
   let image
   let browser
   try {
-    browser = await browserPool.acquire()
+    browser = await browserPool.acquire().timeout(5000); // 5 seconds timeout
+  } catch (error) {
+    console.error('Failed to acquire browser from pool:', error);
+    return res.status(503).send({ error: 'Service temporarily unavailable' });
+  }
+
+  try {
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
@@ -61,18 +69,14 @@ const createImageHandler = async (req, res) => {
       height,
       selector,
       browser,
-    })
+    });
     image = {
       url: imageLink,
       ...metadata,
-    }
+    };
   } catch (err) {
-    console.log(err)
-    return res.status(500).send({ error: 'Something went wrong' })
-  } finally {
-    if (browser) {
-      await browserPool.release(browser)
-    }
+    console.error('Error in image capture:', err);
+    return res.status(500).send({ error: 'Image generation failed', details: err.message });
   }
 
   if (!image) {
@@ -141,6 +145,9 @@ const createPublicImageHandler = async (req, res) => {
   let image
   let browser
   try {
+    console.log("current browser pool size", browserPool.size);
+    console.log("current browser pool available", browserPool.available);
+    console.log("current browser pool pending", browserPool.pending);
     browser = await browserPool.acquire()
     const { url: imageLink, metadata } = await captureImages({
       html,
@@ -173,6 +180,48 @@ const createPublicImageHandler = async (req, res) => {
   return res.send({ image })
 }
 
+const getPageContent = async (req, res) => {
+  let { url } = req.query;
+  if (!url) {
+    return res.status(400).send({ message: 'URL is required' });
+  }
+  url = decodeURIComponent(url);
+  let browser
+  let content
+  if (!url) {
+    return res.status(400).send({ message: 'URL is required' });
+  }
+  try {
+    console.log("current browser pool size", browserPool.size);
+    console.log("current browser pool available", browserPool.available);
+    console.log("current browser pool pending", browserPool.pending);
+    browser = await browserPool.acquire()
+    content = await getRenderedHTML(url, browser);
+  } catch (err) {
+    console.log(err)
+    return res.status(500).send({ error: 'Something went wrong' })
+  } finally {
+    if (browser) {
+      await browserPool.release(browser)
+    }
+  }
+  if (!content) {
+    return res.status(500).send({ error: 'Something went wrong' })
+  }
+  return res.send({ content })
+}
+
+const healthCheckHandler = async (req, res) => {
+  try {
+    const browser = await browserPool.acquire();
+    await browserPool.release(browser);
+    return res.send({ status: 'ok', poolSize: browserPool.size, available: browserPool.available, pending: browserPool.pending, idle: browserPool.idle, used: browserPool.used });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return res.status(503).send({ status: 'error', message: 'Browser pool unavailable' });
+  }
+};
+
 module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
     fastify.register(verifyApiToken)
@@ -189,12 +238,16 @@ module.exports = async (fastify) => {
   })
 
   fastify.register(async (fastify) => {
+    fastify.get('/health', healthCheckHandler)
+  });
+
+  fastify.register(async (fastify) => {
     fastify.register(rateLimit, {
       max: 10,
       timeWindow: '1 minute',
       cache: 10000,
     })
-
+    fastify.get('/page-content', getPageContent)
     fastify.post('/public', createPublicImageHandler)
     fastify.get('/public', (req, res) => {
       res.send({ message: 'Hello from public' })
