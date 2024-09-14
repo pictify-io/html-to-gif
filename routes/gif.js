@@ -148,6 +148,10 @@ const createPublicGifHandler = async (req, res) => {
   } catch (err) {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
+  } finally {
+    if (browser) {
+      await browserPool.release(browser)
+    }
   }
 
   if (!gif) {

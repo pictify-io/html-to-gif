@@ -38,6 +38,7 @@ const createImageHandler = async (req, res) => {
     template: templateUid,
     variables,
     selector,
+    fileExtension,
   } = req.body
   let { html } = req.body
 
@@ -69,6 +70,7 @@ const createImageHandler = async (req, res) => {
       height,
       selector,
       browser,
+      fileExtension,
     });
     image = {
       url: imageLink,
@@ -77,6 +79,10 @@ const createImageHandler = async (req, res) => {
   } catch (err) {
     console.error('Error in image capture:', err);
     return res.status(500).send({ error: 'Image generation failed', details: err.message });
+  } finally {
+    if (browser) {
+      await browserPool.release(browser)
+    }
   }
 
   if (!image) {
@@ -141,7 +147,7 @@ const getImageHandler = async (req, res) => {
 }
 
 const createPublicImageHandler = async (req, res) => {
-  const { html, url, width, height, selector } = req.body
+  const { html, url, width, height, selector, fileExtension } = req.body
   let image
   let browser
   try {
@@ -156,6 +162,7 @@ const createPublicImageHandler = async (req, res) => {
       height,
       selector,
       browser,
+      fileExtension,
     })
     image = {
       url: imageLink,
@@ -164,6 +171,10 @@ const createPublicImageHandler = async (req, res) => {
   } catch (err) {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
+  } finally {
+    if (browser) {
+      await browserPool.release(browser)
+    }
   }
 
   if (!image) {
