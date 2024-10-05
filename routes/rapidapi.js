@@ -70,9 +70,13 @@ const healthCheckHandler = async (req, res) => {
 }
 
 module.exports = async (fastify) => {
-  fastify.register(verifyRapidApiKey)
-  fastify.post('/image', createImageWithRapidApiHandler)
-  fastify.get('/health', healthCheckHandler)
+  fastify.register(async (fastify) => { 
+    fastify.register(verifyRapidApiKey)
+    fastify.post('/image', createImageWithRapidApiHandler)
+  })
+  fastify.register(async (fastify) => {
+    fastify.get('/health', healthCheckHandler)
+  })
 }
 
 module.exports.autoPrefix = '/rapidapi'
