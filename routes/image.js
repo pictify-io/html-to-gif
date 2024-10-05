@@ -119,7 +119,12 @@ const getImageHandler = async (req, res) => {
 }
 
 const createPublicImageHandler = async (req, res) => {
-  const { html, url, width, height, selector, fileExtension } = req.body
+  const { html, url, width, height, selector, fileExtension } = req.body;
+  const allowedOrigins = ['https://pictify.io', 'https://www.pictify.io'];
+  const origin = req.headers['origin'];
+  if (!allowedOrigins.includes(origin)) {
+    return res.status(403).send({ error: 'Forbidden' });
+  }
   let image
   let browser
   try {
@@ -200,11 +205,13 @@ const healthCheckHandler = async (req, res) => {
   }
 };
 
+
 module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
     fastify.register(verifyApiToken)
     fastify.post('/', createImageHandler)
   })
+
 
   fastify.register(async (fastify) => {
     fastify.register(decorateUser)
