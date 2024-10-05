@@ -1,7 +1,7 @@
 const fp = require('fastify-plugin')
 
 const verifyRapidApiKey = async (request, reply) => {
-  const rapidApiHost = request.headers['X-RapidAPI-Host']
+  const rapidApiHost = request.headers['x-rapidapi-host']
 
   if (!rapidApiHost) {
     reply.code(401).send({ message: 'Invalid Request' })
