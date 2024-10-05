@@ -1,32 +1,10 @@
-const puppeteer = require('puppeteer')
-const genericPool = require('generic-pool')
-
-const browserConfig = {
-  headless: 'new',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-}
-
-
-const browserPool = genericPool.createPool(
-  {
-    create: async () => await puppeteer.launch(browserConfig),
-    destroy: async (browser) => await browser.close(),
-  },
-  {
-    min: 2,
-    max: 10,
-    acquireTimeoutMillis: 2000,
-  }
-)
-
+const { acquireBrowser, releaseBrowser } = require('../service/browserpool')
 const captureImages = require('../lib/image')
 const verifyApiToken = require('../plugins/verify_api_token')
 const decorateUser = require('../plugins/decorate_user')
 const getRenderedHTML = require('../lib/page-content')
-
 const Image = require('../models/Image')
 const Template = require('../models/Template')
-
 const rateLimit = require('@fastify/rate-limit')
 
 const createImageHandler = async (req, res) => {
@@ -56,13 +34,7 @@ const createImageHandler = async (req, res) => {
   let image
   let browser
   try {
-    browser = await browserPool.acquire().timeout(5000); // 5 seconds timeout
-  } catch (error) {
-    console.error('Failed to acquire browser from pool:', error);
-    return res.status(503).send({ error: 'Service temporarily unavailable' });
-  }
-
-  try {
+    browser = await acquireBrowser()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
@@ -81,7 +53,7 @@ const createImageHandler = async (req, res) => {
     return res.status(500).send({ error: 'Image generation failed', details: err.message });
   } finally {
     if (browser) {
-      await browserPool.release(browser)
+      await releaseBrowser(browser)
     }
   }
 
@@ -99,7 +71,7 @@ const createImageHandler = async (req, res) => {
   })
 
   user.usage.count += 1
-  user.save()
+  await user.save()
 
   return res.send({
     url: image.url,
@@ -151,10 +123,7 @@ const createPublicImageHandler = async (req, res) => {
   let image
   let browser
   try {
-    console.log("current browser pool size", browserPool.size);
-    console.log("current browser pool available", browserPool.available);
-    console.log("current browser pool pending", browserPool.pending);
-    browser = await browserPool.acquire()
+    browser = await acquireBrowser()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
@@ -173,7 +142,7 @@ const createPublicImageHandler = async (req, res) => {
     return res.status(500).send({ error: 'Something went wrong' })
   } finally {
     if (browser) {
-      await browserPool.release(browser)
+      await releaseBrowser(browser)
     }
   }
 
@@ -199,21 +168,15 @@ const getPageContent = async (req, res) => {
   url = decodeURIComponent(url);
   let browser
   let content
-  if (!url) {
-    return res.status(400).send({ message: 'URL is required' });
-  }
   try {
-    console.log("current browser pool size", browserPool.size);
-    console.log("current browser pool available", browserPool.available);
-    console.log("current browser pool pending", browserPool.pending);
-    browser = await browserPool.acquire()
+    browser = await acquireBrowser()
     content = await getRenderedHTML(url, browser);
   } catch (err) {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
   } finally {
     if (browser) {
-      await browserPool.release(browser)
+      await releaseBrowser(browser)
     }
   }
   if (!content) {
@@ -223,10 +186,14 @@ const getPageContent = async (req, res) => {
 }
 
 const healthCheckHandler = async (req, res) => {
+  const { getPoolStats } = require('../service/browserpool')
   try {
-    const browser = await browserPool.acquire();
-    await browserPool.release(browser);
-    return res.send({ status: 'ok', poolSize: browserPool.size, available: browserPool.available, pending: browserPool.pending, idle: browserPool.idle, used: browserPool.used });
+    const browser = await acquireBrowser();
+    await releaseBrowser(browser);
+    return res.send({
+      status: 'ok',
+      poolStats: getPoolStats()
+    });
   } catch (error) {
     console.error('Health check failed:', error);
     return res.status(503).send({ status: 'error', message: 'Browser pool unavailable' });

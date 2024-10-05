@@ -1,32 +1,12 @@
 const createGif = require('../lib/gif')
 const decorateUser = require('../plugins/decorate_user')
 const verifyApiToken = require('../plugins/verify_api_token')
+const { acquireBrowser, releaseBrowser } = require('../service/browserpool')
 
 const Gif = require('../models/Gif')
 const Template = require('../models/Template')
 
 const rateLimit = require('@fastify/rate-limit')
-
-const puppeteer = require('puppeteer')
-const genericPool = require('generic-pool')
-
-const browserConfig = {
-  headless: 'new',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-}
-
-// Define the browserPool before it's used
-const browserPool = genericPool.createPool(
-  {
-    create: async () => await puppeteer.launch(browserConfig),
-    destroy: async (browser) => await browser.close(),
-  },
-  {
-    min: 2,
-    max: 10,
-    acquireTimeoutMillis: 60000,
-  }
-)
 
 const createGifHandler = async (req, res) => {
   const { user } = req
@@ -57,7 +37,7 @@ const createGifHandler = async (req, res) => {
   }
 
   try {
-    browser = await browserPool.acquire()
+    browser = await acquireBrowser()
     const { url: gifLink, metadata } = await createGif({
       html,
       url,
@@ -72,11 +52,11 @@ const createGifHandler = async (req, res) => {
       ...metadata,
     }
   } catch (err) {
-    console.log(err)
-    return res.status(500).send({ error: 'Something went wrong' })
+    console.error('Error in GIF creation:', err)
+    return res.status(500).send({ error: 'GIF generation failed', details: err.message })
   } finally {
     if (browser) {
-      await browserPool.release(browser)
+      await releaseBrowser(browser)
     }
   }
 
@@ -94,7 +74,7 @@ const createGifHandler = async (req, res) => {
     createdBy: user._id,
   })
   user.usage.count += 1
-  user.save()
+  await user.save()
 
   return res.send({ gif })
 }
@@ -132,7 +112,7 @@ const createPublicGifHandler = async (req, res) => {
   let gif
   let browser
   try {
-    browser = await browserPool.acquire()
+    browser = await acquireBrowser()
     const { url: gifLink, metadata } = await createGif({
       html,
       url,
@@ -146,11 +126,11 @@ const createPublicGifHandler = async (req, res) => {
       ...metadata,
     }
   } catch (err) {
-    console.log(err)
-    return res.status(500).send({ error: 'Something went wrong' })
+    console.error('Error in public GIF creation:', err)
+    return res.status(500).send({ error: 'GIF generation failed', details: err.message })
   } finally {
     if (browser) {
-      await browserPool.release(browser)
+      await releaseBrowser(browser)
     }
   }
 

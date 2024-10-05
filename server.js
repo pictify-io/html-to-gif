@@ -6,8 +6,7 @@ const path = require('path')
 const cors = require('@fastify/cors')
 const fastifyHttpProxy = require('@fastify/http-proxy')
 const db = require('./db')
-
-db()
+const { initializeBrowserPool, cleanup } = require('./service/browserpool')
 
 const port = process.env.PORT || 3001
 
@@ -91,10 +90,26 @@ fastify.register(fastifyHttpProxy, {
   upstream: 'https://app.posthog.com',
 })
 
-fastify.listen({ port, host: '0.0.0.0' }, (err, address) => {
-  if (err) {
-    console.error(err)
+const startServer = async () => {
+  try {
+    await db()
+    console.log('Connected to database')
+
+    await initializeBrowserPool()
+    console.log('Browser pool initialized')
+
+    await fastify.listen({ port })
+    console.log(`Server listening on port ${port}`)
+  } catch (err) {
+    console.error('Error starting server:', err)
     process.exit(1)
   }
-  console.log(`Server listening on ${address}`)
+}
+
+process.on('SIGINT', async () => {
+  console.log('Shutting down server...')
+  await cleanup()
+  process.exit(0)
 })
+
+startServer()
