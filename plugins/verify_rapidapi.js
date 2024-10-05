@@ -1,14 +1,13 @@
 const fp = require('fastify-plugin')
 
 const verifyRapidApiKey = async (request, reply) => {
-  const rapidApiKey = request.headers['x-rapidapi-key']
-  const rapidApiHost = request.headers['x-rapidapi-host']
+  const rapidApiHost = request.headers['X-RapidAPI-Host']
 
-  if (!rapidApiKey || !rapidApiHost) {
+  if (!rapidApiHost) {
     reply.code(401).send({ message: 'Invalid Request' })
   }
 
-  if (!isValidRapidApiKey(rapidApiKey, rapidApiHost)) {
+  if (!isValidRapidApiKey(rapidApiHost)) {
     reply.code(401).send({ message: 'Invalid RapidAPI key' })
   }
 
@@ -22,10 +21,9 @@ module.exports = fp(async (fastify, opts) => {
   fastify.addHook('preHandler', verifyRapidApiKey)
 })
 
-function isValidRapidApiKey(key, host) {
-  const rapidApiKey = process.env.RAPID_API_KEY
+function isValidRapidApiKey(host) {
   const rapidApiHost = process.env.RAPID_API_HOST
 
-  return key === rapidApiKey && host === rapidApiHost
+  return host === rapidApiHost
 
 }
