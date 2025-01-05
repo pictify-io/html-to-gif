@@ -1,5 +1,5 @@
 const verifyRapidApiKey = require('../plugins/verify_rapidapi')
-const { acquireBrowser, releaseBrowser } = require('../service/browserpool')
+const { acquirePage, releasePage } = require('../service/browserpool')
 const captureImages = require('../lib/image')
 const Image = require('../models/Image')
 
@@ -15,16 +15,16 @@ const createImageWithRapidApiHandler = async (req, res) => {
 
 
   let image
-  let browser
+  let page
   try {
-    browser = await acquireBrowser()
+    page = await acquirePage()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
       width,
       height,
       selector,
-      browser,
+      page,
       fileExtension,
     });
     image = {
@@ -35,8 +35,8 @@ const createImageWithRapidApiHandler = async (req, res) => {
     console.error('Error in image capture:', err);
     return res.status(500).send({ error: 'Image generation failed', details: err.message });
   } finally {
-    if (browser) {
-      await releaseBrowser(browser)
+    if (page) {
+      await releasePage(page)
     }
   }
 
