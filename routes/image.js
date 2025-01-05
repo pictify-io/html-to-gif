@@ -1,4 +1,4 @@
-const { acquireBrowser, releaseBrowser } = require('../service/browserpool')
+const { acquirePage, releasePage } = require('../service/browserpool')
 const captureImages = require('../lib/image')
 const verifyApiToken = require('../plugins/verify_api_token')
 const decorateUser = require('../plugins/decorate_user')
@@ -32,16 +32,16 @@ const createImageHandler = async (req, res) => {
   }
 
   let image
-  let browser
+  let page
   try {
-    browser = await acquireBrowser()
+    page = await acquirePage()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
       width,
       height,
       selector,
-      browser,
+      page,
       fileExtension,
     });
     image = {
@@ -52,8 +52,8 @@ const createImageHandler = async (req, res) => {
     console.error('Error in image capture:', err);
     return res.status(500).send({ error: 'Image generation failed', details: err.message });
   } finally {
-    if (browser) {
-      await releaseBrowser(browser)
+    if (page) {
+      await releasePage(page)
     }
   }
 
@@ -122,20 +122,21 @@ const createPublicImageHandler = async (req, res) => {
   const { html, url, width, height, selector, fileExtension } = req.body;
   const allowedOrigins = ['https://pictify.io', 'https://www.pictify.io'];
   const origin = req.headers['origin'];
+
   if (!allowedOrigins.includes(origin)) {
     return res.status(403).send({ error: 'Forbidden' });
   }
   let image
-  let browser
+  let page
   try {
-    browser = await acquireBrowser()
+    page = await acquirePage()
     const { url: imageLink, metadata } = await captureImages({
       html,
       url,
       width,
       height,
       selector,
-      browser,
+      page,
       fileExtension,
     })
     image = {
@@ -146,8 +147,8 @@ const createPublicImageHandler = async (req, res) => {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
   } finally {
-    if (browser) {
-      await releaseBrowser(browser)
+    if (page) {
+      await releasePage(page)
     }
   }
 
@@ -171,17 +172,17 @@ const getPageContent = async (req, res) => {
     return res.status(400).send({ message: 'URL is required' });
   }
   url = decodeURIComponent(url);
-  let browser
+  let page
   let content
   try {
-    browser = await acquireBrowser()
-    content = await getRenderedHTML(url, browser);
+    page = await acquirePage()
+    content = await getRenderedHTML(url, page);
   } catch (err) {
     console.log(err)
     return res.status(500).send({ error: 'Something went wrong' })
   } finally {
-    if (browser) {
-      await releaseBrowser(browser)
+    if (page) {
+      await releasePage(page)
     }
   }
   if (!content) {
@@ -193,15 +194,15 @@ const getPageContent = async (req, res) => {
 const healthCheckHandler = async (req, res) => {
   const { getPoolStats } = require('../service/browserpool')
   try {
-    const browser = await acquireBrowser();
-    await releaseBrowser(browser);
+    const page = await acquirePage();
+    await releasePage(page);
     return res.send({
       status: 'ok',
       poolStats: getPoolStats()
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    return res.status(503).send({ status: 'error', message: 'Browser pool unavailable' });
+    return res.status(503).send({ status: 'error', message: 'Browser/page pool unavailable' });
   }
 };
 

@@ -50,18 +50,27 @@ const browserConfig = {
 }
 
 let browserPool
+let pagePool
+
+const MAX_PAGES_PER_BROWSER = 20
+const MAX_BROWSERS = 5
+
+const createPage = async (browser) => {
+  const page = await browser.newPage()
+  page.setDefaultNavigationTimeout(30000)
+  page.setDefaultTimeout(30000)
+  page.on('error', err => console.error('Page crashed:', err))
+  page.on('pageerror', err => console.error('Page error:', err))
+  return page
+}
 
 const initializeBrowserPool = async () => {
+  // Create browser pool
   browserPool = genericPool.createPool(
     {
       create: async () => {
         const browser = await puppeteer.launch(browserConfig)
-        // Set up browser-level memory monitoring
-        const pages = await browser.pages()
-        pages.forEach(page => {
-          page.on('error', err => console.error('Page crashed:', err))
-          page.on('pageerror', err => console.error('Page error:', err))
-        })
+        browser.pageCount = 0 // Track number of pages per browser
         return browser
       },
       destroy: async (browser) => {
@@ -76,46 +85,128 @@ const initializeBrowserPool = async () => {
       validate: async (browser) => {
         try {
           const pages = await browser.pages()
-          return pages.length < 10 // Validate that browser doesn't have too many pages open
+          return pages.length <= MAX_PAGES_PER_BROWSER && browser.connected
         } catch (err) {
           return false
         }
       }
     },
     {
-      min: 1, // Reduce minimum browsers
-      max: 5, // Reduce maximum browsers
+      min: 1,
+      max: MAX_BROWSERS,
       acquireTimeoutMillis: 60000,
-      idleTimeoutMillis: 120000, // Reduce idle timeout to 2 minutes
-      evictionRunIntervalMillis: 30000, // Run eviction every 30 seconds
+      idleTimeoutMillis: 300000, // 5 minutes idle timeout
+      evictionRunIntervalMillis: 60000, // Check every minute
       numTestsPerEvictionRun: 3,
       autostart: true
     }
   )
 
-  // Pre-create the minimum number of browsers
-  const initialBrowser = browserPool.acquire()
-  await initialBrowser
-  browserPool.release(await initialBrowser)
+  // Create page pool
+  pagePool = genericPool.createPool(
+    {
+      create: async () => {
+        // Try to find a browser with available page slots
+        let browser = null
+        const browsers = await Promise.all(
+          Array.from({ length: browserPool.size }, async () => {
+            try {
+              return await browserPool.acquire()
+            } catch (e) {
+              return null
+            }
+          })
+        )
 
-  console.log('Browser pool initialized')
+        for (const b of browsers.filter(b => b)) {
+          const pages = await b.pages()
+          if (pages.length < MAX_PAGES_PER_BROWSER) {
+            browser = b
+            break
+          }
+          await browserPool.release(b)
+        }
+
+        // If no browser has slots, create a new one
+        if (!browser) {
+          browser = await browserPool.acquire()
+        }
+
+        try {
+          const page = await createPage(browser)
+          page.browser = browser
+          browser.pageCount = (browser.pageCount || 0) + 1
+          return page
+        } catch (err) {
+          await browserPool.release(browser)
+          throw err
+        }
+      },
+      destroy: async (page) => {
+        try {
+          const browser = page.browser
+          await page.close()
+          browser.pageCount--
+          await browserPool.release(browser)
+        } catch (err) {
+          console.error('Error destroying page:', err)
+        }
+      },
+      validate: async (page) => {
+        try {
+          await page.evaluate(() => true)
+          return true
+        } catch (err) {
+          return false
+        }
+      }
+    },
+    {
+      min: 2,
+      max: MAX_BROWSERS * MAX_PAGES_PER_BROWSER, // Maximum total pages across all browsers
+      acquireTimeoutMillis: 60000,
+      idleTimeoutMillis: 60000, // 1 minute idle timeout for pages
+      evictionRunIntervalMillis: 30000,
+      numTestsPerEvictionRun: 5,
+      autostart: true
+    }
+  )
+
+  // Initialize with some pages
+  const initialPage = pagePool.acquire()
+  await initialPage
+  pagePool.release(await initialPage)
+
+  console.log('Browser and page pools initialized')
 }
 
-const acquireBrowser = async () => {
-  if (!browserPool) {
-    throw new Error('Browser pool not initialized')
+const acquirePage = async () => {
+  if (!pagePool) {
+    throw new Error('Page pool not initialized')
   }
-  return await browserPool.acquire()
+  return await pagePool.acquire()
 }
 
-const releaseBrowser = async (browser) => {
-  if (!browserPool) {
-    throw new Error('Browser pool not initialized')
+const releasePage = async (page) => {
+  if (!pagePool) {
+    throw new Error('Page pool not initialized')
   }
-  await browserPool.release(browser)
+  try {
+    // Just navigate to blank page to clear any state
+    await page.goto('about:blank')
+    await pagePool.release(page)
+  } catch (err) {
+    console.error('Error releasing page:', err)
+    // Force destroy the page if we can't clean it
+    await pagePool.destroy(page)
+  }
 }
 
 const cleanup = async () => {
+  if (pagePool) {
+    await pagePool.drain()
+    await pagePool.clear()
+  }
   if (browserPool) {
     await browserPool.drain()
     await browserPool.clear()
@@ -124,14 +215,23 @@ const cleanup = async () => {
 
 module.exports = {
   initializeBrowserPool,
-  acquireBrowser,
-  releaseBrowser,
+  acquirePage,
+  releasePage,
   cleanup,
-  getPoolStats: () => browserPool ? {
-    size: browserPool.size,
-    available: browserPool.available,
-    pending: browserPool.pending,
-    max: browserPool.max,
-    min: browserPool.min
-  } : null
+  getPoolStats: () => ({
+    browser: browserPool ? {
+      size: browserPool.size,
+      available: browserPool.available,
+      pending: browserPool.pending,
+      max: browserPool.max,
+      min: browserPool.min
+    } : null,
+    page: pagePool ? {
+      size: pagePool.size,
+      available: pagePool.available,
+      pending: pagePool.pending,
+      max: pagePool.max,
+      min: pagePool.min
+    } : null
+  })
 }

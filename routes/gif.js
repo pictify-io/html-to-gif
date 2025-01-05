@@ -1,7 +1,7 @@
 const createGif = require('../lib/gif')
 const decorateUser = require('../plugins/decorate_user')
 const verifyApiToken = require('../plugins/verify_api_token')
-const { acquireBrowser, releaseBrowser } = require('../service/browserpool')
+const { acquirePage, releasePage } = require('../service/browserpool')
 
 const Gif = require('../models/Gif')
 const Template = require('../models/Template')
@@ -24,7 +24,7 @@ const createGifHandler = async (req, res) => {
   let { html } = req.body
 
   let gif
-
+  let page
   if (templateUid) {
     const template = await Template.findOne({
       uid: templateUid,
@@ -37,7 +37,7 @@ const createGifHandler = async (req, res) => {
   }
 
   try {
-    browser = await acquireBrowser()
+    page = await acquirePage()
     const { url: gifLink, metadata } = await createGif({
       html,
       url,
@@ -45,7 +45,7 @@ const createGifHandler = async (req, res) => {
       height,
       framesPerSecond,
       selector,
-      browser,
+      page,
     })
     gif = {
       url: gifLink,
@@ -55,8 +55,8 @@ const createGifHandler = async (req, res) => {
     console.error('Error in GIF creation:', err)
     return res.status(500).send({ error: 'GIF generation failed', details: err.message })
   } finally {
-    if (browser) {
-      await releaseBrowser(browser)
+    if (page) {
+      await releasePage(page)
     }
   }
 
@@ -110,16 +110,16 @@ const getGifHandler = async (req, res) => {
 const createPublicGifHandler = async (req, res) => {
   const { html, url, width, height, framesPerSecond } = req.body
   let gif
-  let browser
+  let page
   try {
-    browser = await acquireBrowser()
+    page = await acquirePage()
     const { url: gifLink, metadata } = await createGif({
       html,
       url,
       width,
       height,
       framesPerSecond,
-      browser,
+      page,
     })
     gif = {
       url: gifLink,
@@ -129,8 +129,8 @@ const createPublicGifHandler = async (req, res) => {
     console.error('Error in public GIF creation:', err)
     return res.status(500).send({ error: 'GIF generation failed', details: err.message })
   } finally {
-    if (browser) {
-      await releaseBrowser(browser)
+    if (page) {
+      await releasePage(page)
     }
   }
 

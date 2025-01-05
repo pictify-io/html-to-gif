@@ -96,7 +96,7 @@ const startServer = async () => {
     console.log('Connected to database')
 
     await initializeBrowserPool()
-    console.log('Browser pool initialized')
+    console.log('Page pool initialized')
 
     await fastify.listen({ port })
     console.log(`Server listening on port ${port}`)
