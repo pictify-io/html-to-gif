@@ -1,10 +1,22 @@
 const puppeteer = require('puppeteer')
 const genericPool = require('generic-pool')
 
+// Constants
+const MAX_BROWSERS = 3;
+const MIN_BROWSERS = 1;
+const MAX_PAGES_PER_BROWSER = 10;
+const BROWSER_TIMEOUT = 30000;
+const BROWSER_HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const MAX_BROWSER_IDLE_TIME = 300000; // 5 minutes
+const MAX_BROWSER_ACQUISITION_TIME = 120000; // 2 minutes
+const WARM_BROWSER_COUNT = 1; // Keep at least one warm browser
+const PAGE_WARM_COUNT = 2; // Keep some pages warm per browser
+const MAX_PAGE_REUSE = 50; // Maximum times a page can be reused before recycling
+
+// Browser configuration
 const browserConfig = {
   headless: 'new',
   args: [
-    '--autoplay-policy=user-gesture-required',
     '--disable-background-networking',
     '--disable-background-timer-throttling',
     '--disable-backgrounding-occluded-windows',
@@ -40,198 +52,556 @@ const browserConfig = {
     '--use-gl=swiftshader',
     '--use-mock-keychain',
     '--disable-gpu',
-    '--allow-file-access-from-files',
     '--disable-web-security',
     '--enable-precise-memory-info',
-    '--js-flags="--max-old-space-size=4096"'
+    '--disable-features=site-per-process'
   ],
-  ignoreDefaultArgs: ['--disable-extensions'],
-  protocolTimeout: 60000
-}
+  defaultViewport: {
+    width: 1280,
+    height: 720
+  }
+};
 
-let browserPool
-let pagePool
+class BrowserPool {
+  constructor() {
+    this.pool = null;
+    this.pagesByBrowser = new Map();
+    this.browserAcquisitionTimes = new Map();
+    this.browserUsageCounts = new Map(); // Track browser usage
+    this.browserLastUsed = new Map(); // Track last usage time
+    this.healthCheckInterval = null;
+    this.warmBrowsers = new Set(); // Track warm browsers
+  }
 
-const MAX_PAGES_PER_BROWSER = 20
-const MAX_BROWSERS = 5
+  async initialize() {
+    if (this.pool) {
+      return;
+    }
 
-const createPage = async (browser) => {
-  const page = await browser.newPage()
-  page.setDefaultNavigationTimeout(30000)
-  page.setDefaultTimeout(30000)
-  page.on('error', err => console.error('Page crashed:', err))
-  page.on('pageerror', err => console.error('Page error:', err))
-  return page
-}
-
-const initializeBrowserPool = async () => {
-  // Create browser pool
-  browserPool = genericPool.createPool(
-    {
+    this.pool = genericPool.createPool({
       create: async () => {
-        const browser = await puppeteer.launch(browserConfig)
-        browser.pageCount = 0 // Track number of pages per browser
-        return browser
+        const browser = await puppeteer.launch(browserConfig);
+        this.pagesByBrowser.set(browser, new Set());
+        this.browserUsageCounts.set(browser, 0);
+        this.browserLastUsed.set(browser, Date.now());
+
+        browser.on('disconnected', async () => {
+          if (this.pagesByBrowser.has(browser)) {
+            const pages = this.pagesByBrowser.get(browser);
+            pages.clear();
+            this.pagesByBrowser.delete(browser);
+            this.browserAcquisitionTimes.delete(browser);
+            this.browserUsageCounts.delete(browser);
+            this.browserLastUsed.delete(browser);
+            this.warmBrowsers.delete(browser);
+          }
+        });
+
+        return browser;
       },
       destroy: async (browser) => {
         try {
-          const pages = await browser.pages()
-          await Promise.all(pages.map(page => page.close()))
-          await browser.close()
+          if (this.pagesByBrowser.has(browser)) {
+            const pages = this.pagesByBrowser.get(browser);
+            pages.clear();
+            this.pagesByBrowser.delete(browser);
+            this.browserAcquisitionTimes.delete(browser);
+            this.browserUsageCounts.delete(browser);
+            this.browserLastUsed.delete(browser);
+            this.warmBrowsers.delete(browser);
+          }
+          await browser.close();
         } catch (err) {
-          console.error('Error destroying browser:', err)
+          console.error('Error destroying browser:', err);
         }
       },
       validate: async (browser) => {
         try {
-          const pages = await browser.pages()
-          return pages.length <= MAX_PAGES_PER_BROWSER && browser.connected
+          return browser.connected;
         } catch (err) {
-          return false
+          return false;
+        }
+      },
+    }, {
+      min: MIN_BROWSERS,
+      max: MAX_BROWSERS,
+      acquireTimeoutMillis: BROWSER_TIMEOUT,
+      evictionRunIntervalMillis: BROWSER_HEALTH_CHECK_INTERVAL,
+      numTestsPerEvictionRun: MAX_BROWSERS,
+      autostart: false,
+      testOnBorrow: true
+    });
+
+    await this.pool.start();
+    this.startHealthCheck();
+    await this.ensureWarmBrowsers();
+  }
+
+  async ensureWarmBrowsers() {
+    // Maintain warm browser pool
+    while (this.warmBrowsers.size < WARM_BROWSER_COUNT) {
+      try {
+        const browser = await this.acquireBrowser();
+        this.warmBrowsers.add(browser);
+        // Pre-create some pages
+        for (let i = 0; i < PAGE_WARM_COUNT; i++) {
+          const page = await browser.newPage();
+          this.trackPage(browser, page);
+        }
+      } catch (error) {
+        console.error('Error ensuring warm browsers:', error);
+        break;
+      }
+    }
+  }
+
+  async performHealthCheck() {
+    const now = Date.now();
+
+    // Check for stuck browsers
+    for (const [browser, acquisitionTime] of this.browserAcquisitionTimes.entries()) {
+      if (now - acquisitionTime > MAX_BROWSER_ACQUISITION_TIME) {
+        console.warn('Found stuck browser, attempting recovery...');
+        try {
+          await this.releaseBrowser(browser);
+          console.log('Successfully released stuck browser');
+        } catch (error) {
+          console.error('Failed to release stuck browser:', error);
+          try {
+            await this.pool.destroy(browser);
+          } catch (destroyError) {
+            console.error('Failed to destroy stuck browser:', destroyError);
+          }
         }
       }
-    },
-    {
-      min: 1,
-      max: MAX_BROWSERS,
-      acquireTimeoutMillis: 60000,
-      idleTimeoutMillis: 300000, // 5 minutes idle timeout
-      evictionRunIntervalMillis: 60000, // Check every minute
-      numTestsPerEvictionRun: 3,
-      autostart: true
     }
-  )
 
-  // Create page pool
-  pagePool = genericPool.createPool(
-    {
-      create: async () => {
-        // Try to find a browser with available page slots
-        let browser = null
-        const browsers = await Promise.all(
-          Array.from({ length: browserPool.size }, async () => {
-            try {
-              return await browserPool.acquire()
-            } catch (e) {
-              return null
-            }
-          })
-        )
+    // Check for idle browsers exceeding max idle time
+    for (const [browser, lastUsed] of this.browserLastUsed.entries()) {
+      if (now - lastUsed > MAX_BROWSER_IDLE_TIME && !this.warmBrowsers.has(browser)) {
+        console.log('Recycling idle browser');
+        try {
+          await this.pool.destroy(browser);
+        } catch (error) {
+          console.error('Error recycling idle browser:', error);
+        }
+      }
+    }
 
-        for (const b of browsers.filter(b => b)) {
-          const pages = await b.pages()
-          if (pages.length < MAX_PAGES_PER_BROWSER) {
-            browser = b
-            break
+    // Ensure warm browser pool
+    await this.ensureWarmBrowsers();
+
+    // Check pool saturation
+    const stats = await this.getPoolStats();
+    if (stats.size === MAX_BROWSERS && stats.available === 0) {
+      console.warn('Browser pool saturated, attempting recovery...');
+      try {
+        // Find and recycle the most used browser
+        let maxUsage = 0;
+        let browserToRecycle = null;
+        for (const [browser, count] of this.browserUsageCounts.entries()) {
+          if (count > maxUsage) {
+            maxUsage = count;
+            browserToRecycle = browser;
           }
-          await browserPool.release(b)
         }
+        if (browserToRecycle) {
+          await this.pool.destroy(browserToRecycle);
+          const browser = await puppeteer.launch(browserConfig);
+          await this.pool.release(browser);
+          console.log('Successfully recycled heavily used browser');
+        }
+      } catch (error) {
+        console.error('Failed to recycle browser:', error);
+      }
+    }
+  }
 
-        // If no browser has slots, create a new one
-        if (!browser) {
-          browser = await browserPool.acquire()
-        }
+  async acquireBrowser() {
+    if (!this.pool) {
+      throw new Error('Browser pool not initialized');
+    }
+
+    // Try to reuse a warm browser first
+    for (const browser of this.warmBrowsers) {
+      if (!this.browserAcquisitionTimes.has(browser)) {
+        this.browserAcquisitionTimes.set(browser, Date.now());
+        this.browserUsageCounts.set(browser, (this.browserUsageCounts.get(browser) || 0) + 1);
+        this.browserLastUsed.set(browser, Date.now());
+        return browser;
+      }
+    }
+
+    // If no warm browser available, get one from the pool
+    const browser = await this.pool.acquire();
+    this.browserAcquisitionTimes.set(browser, Date.now());
+    this.browserUsageCounts.set(browser, (this.browserUsageCounts.get(browser) || 0) + 1);
+    this.browserLastUsed.set(browser, Date.now());
+    return browser;
+  }
+
+  async releaseBrowser(browser) {
+    if (!this.pool) {
+      throw new Error('Browser pool not initialized');
+    }
+    this.browserAcquisitionTimes.delete(browser);
+    this.browserLastUsed.set(browser, Date.now());
+
+    // If this is a warm browser and still has capacity, keep it warm
+    if (this.warmBrowsers.has(browser) && this.getPageCount(browser) < MAX_PAGES_PER_BROWSER) {
+      return;
+    }
+
+    // If browser has been used too much, recycle it
+    if (this.browserUsageCounts.get(browser) > MAX_PAGE_REUSE) {
+      console.log('Recycling heavily used browser');
+      await this.pool.destroy(browser);
+      return;
+    }
+
+    await this.pool.release(browser);
+  }
+
+  async cleanup() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+
+    if (this.pool) {
+      await this.pool.drain();
+      await this.pool.clear();
+      this.pagesByBrowser.clear();
+      this.browserAcquisitionTimes.clear();
+      this.browserUsageCounts.clear();
+      this.browserLastUsed.clear();
+      this.warmBrowsers.clear();
+      this.pool = null;
+    }
+  }
+
+  getPageCount(browser) {
+    return this.pagesByBrowser.get(browser)?.size || 0;
+  }
+
+  trackPage(browser, page) {
+    const pages = this.pagesByBrowser.get(browser);
+    if (pages) {
+      pages.add(page);
+    }
+  }
+
+  untrackPage(browser, page) {
+    const pages = this.pagesByBrowser.get(browser);
+    if (pages) {
+      pages.delete(page);
+    }
+  }
+
+  async getPoolStats() {
+    if (!this.pool) {
+      return {
+        size: 0,
+        available: 0,
+        borrowed: 0,
+        pending: 0,
+        max: MAX_BROWSERS,
+        min: MIN_BROWSERS,
+        pagesByBrowser: []
+      };
+    }
+
+    const poolSize = this.pool.size;
+    const available = this.pool.available;
+    const borrowed = this.pool.borrowed;
+    const pending = this.pool.pending;
+
+    // Get page counts for each browser
+    const pagesByBrowser = Array.from(this.pagesByBrowser.entries()).map(([browser, pages]) => ({
+      connected: browser.connected,
+      pageCount: pages.size
+    }));
+
+    return {
+      size: poolSize,
+      available,
+      borrowed,
+      pending,
+      max: MAX_BROWSERS,
+      min: MIN_BROWSERS,
+      pagesByBrowser
+    };
+  }
+
+  startHealthCheck() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+    }
+
+    this.healthCheckInterval = setInterval(async () => {
+      try {
+        await this.performHealthCheck();
+      } catch (error) {
+        console.error('Error in browser pool health check:', error);
+      }
+    }, BROWSER_HEALTH_CHECK_INTERVAL);
+
+    // Ensure the interval doesn't keep the process alive
+    this.healthCheckInterval.unref();
+  }
+}
+
+class PagePool {
+  constructor(browserPool) {
+    this.browserPool = browserPool;
+    this.pool = null;
+    this.pageAcquisitionTimes = new Map();
+    this.pageUsageCounts = new Map(); // Track page usage
+    this.pageLastUsed = new Map(); // Track last usage time
+    this.healthCheckInterval = null;
+  }
+
+  async initialize() {
+    if (this.pool) {
+      return;
+    }
+
+    this.pool = genericPool.createPool({
+      create: async () => {
+        const browser = await this.browserPool.acquireBrowser();
 
         try {
-          const page = await createPage(browser)
-          page.browser = browser
-          browser.pageCount = (browser.pageCount || 0) + 1
-          return page
+          if (this.browserPool.getPageCount(browser) >= MAX_PAGES_PER_BROWSER) {
+            await this.browserPool.releaseBrowser(browser);
+            throw new Error('Browser at max page capacity');
+          }
+
+          const page = await browser.newPage();
+          await page.setDefaultNavigationTimeout(BROWSER_TIMEOUT);
+          await page.setDefaultTimeout(BROWSER_TIMEOUT);
+
+          this.browserPool.trackPage(browser, page);
+          page.browser = browser;
+          this.pageUsageCounts.set(page, 0);
+          this.pageLastUsed.set(page, Date.now());
+
+          page.on('error', async () => {
+            await this.destroyPage(page).catch(console.error);
+          });
+
+          return page;
         } catch (err) {
-          await browserPool.release(browser)
-          throw err
+          await this.browserPool.releaseBrowser(browser);
+          throw err;
         }
       },
       destroy: async (page) => {
-        try {
-          const browser = page.browser
-          await page.close()
-          browser.pageCount--
-          await browserPool.release(browser)
-        } catch (err) {
-          console.error('Error destroying page:', err)
-        }
+        await this.destroyPage(page);
       },
       validate: async (page) => {
         try {
-          await page.evaluate(() => true)
-          return true
+          await page.evaluate(() => true);
+          const usageCount = this.pageUsageCounts.get(page) || 0;
+          return usageCount < MAX_PAGE_REUSE; // Recycle pages that have been used too much
         } catch (err) {
-          return false
+          return false;
         }
       }
-    },
-    {
-      min: 2,
-      max: MAX_BROWSERS * MAX_PAGES_PER_BROWSER, // Maximum total pages across all browsers
-      acquireTimeoutMillis: 60000,
-      idleTimeoutMillis: 60000, // 1 minute idle timeout for pages
-      evictionRunIntervalMillis: 30000,
-      numTestsPerEvictionRun: 5,
-      autostart: true
+    }, {
+      max: MAX_BROWSERS * MAX_PAGES_PER_BROWSER,
+      min: 1,
+      acquireTimeoutMillis: BROWSER_TIMEOUT,
+      evictionRunIntervalMillis: BROWSER_HEALTH_CHECK_INTERVAL,
+      numTestsPerEvictionRun: MAX_BROWSERS * MAX_PAGES_PER_BROWSER,
+      autostart: false,
+      testOnBorrow: true
+    });
+
+    await this.pool.start();
+    this.startHealthCheck();
+  }
+
+  async acquirePage() {
+    if (!this.pool) {
+      throw new Error('Page pool not initialized');
     }
-  )
+    const page = await this.pool.acquire();
+    this.pageAcquisitionTimes.set(page, Date.now());
+    this.pageUsageCounts.set(page, (this.pageUsageCounts.get(page) || 0) + 1);
+    this.pageLastUsed.set(page, Date.now());
+    return page;
+  }
 
-  // Initialize with some pages
-  const initialPage = pagePool.acquire()
-  await initialPage
-  pagePool.release(await initialPage)
+  async releasePage(page) {
+    if (!this.pool) {
+      throw new Error('Page pool not initialized');
+    }
+    this.pageAcquisitionTimes.delete(page);
+    this.pageLastUsed.set(page, Date.now());
 
-  console.log('Browser and page pools initialized')
+    // If page has been used too much, destroy it
+    if (this.pageUsageCounts.get(page) >= MAX_PAGE_REUSE) {
+      await this.destroyPage(page);
+      return;
+    }
+
+    await this.pool.release(page);
+  }
+
+  async performHealthCheck() {
+    const now = Date.now();
+
+    // Check for stuck pages
+    for (const [page, acquisitionTime] of this.pageAcquisitionTimes.entries()) {
+      if (now - acquisitionTime > MAX_BROWSER_ACQUISITION_TIME) {
+        console.warn('Found stuck page, attempting recovery...');
+        try {
+          await this.releasePage(page);
+          console.log('Successfully released stuck page');
+        } catch (error) {
+          console.error('Failed to release stuck page:', error);
+          try {
+            await this.destroyPage(page);
+          } catch (destroyError) {
+            console.error('Failed to destroy stuck page:', destroyError);
+          }
+        }
+      }
+    }
+
+    // Check for pages that have been used too much
+    for (const [page, usageCount] of this.pageUsageCounts.entries()) {
+      if (usageCount >= MAX_PAGE_REUSE) {
+        console.log('Recycling heavily used page');
+        try {
+          await this.destroyPage(page);
+        } catch (error) {
+          console.error('Error recycling used page:', error);
+        }
+      }
+    }
+
+    // Check pool saturation
+    const stats = await this.getPoolStats();
+    if (stats.size === MAX_BROWSERS * MAX_PAGES_PER_BROWSER && stats.available === 0) {
+      console.warn('Page pool saturated, attempting recovery...');
+      try {
+        const stuckPages = Array.from(this.pageAcquisitionTimes.keys());
+        for (const page of stuckPages) {
+          await this.destroyPage(page);
+        }
+        console.log('Successfully cleaned up stuck pages');
+      } catch (error) {
+        console.error('Failed to clean up stuck pages:', error);
+      }
+    }
+  }
+
+  async destroyPage(page) {
+    try {
+      const browser = page.browser;
+      if (browser) {
+        this.browserPool.untrackPage(browser, page);
+        this.pageAcquisitionTimes.delete(page);
+        await page.close().catch(console.error);
+        await this.browserPool.releaseBrowser(browser);
+      }
+    } catch (err) {
+      console.error('Error destroying page:', err);
+    }
+  }
+
+  async cleanup() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+
+    if (this.pool) {
+      await this.pool.drain();
+      await this.pool.clear();
+      this.pageAcquisitionTimes.clear();
+      this.pageUsageCounts.clear();
+      this.pageLastUsed.clear();
+      this.pool = null;
+    }
+  }
+
+  async getPoolStats() {
+    if (!this.pool) {
+      return {
+        size: 0,
+        available: 0,
+        borrowed: 0,
+        pending: 0,
+        max: MAX_BROWSERS * MAX_PAGES_PER_BROWSER,
+        min: 1
+      };
+    }
+
+    const poolSize = this.pool.size;
+    const available = this.pool.available;
+    const borrowed = this.pool.borrowed;
+    const pending = this.pool.pending;
+
+    return {
+      size: poolSize,
+      available,
+      borrowed,
+      pending,
+      max: MAX_BROWSERS * MAX_PAGES_PER_BROWSER,
+      min: 1,
+      activePages: this.pageAcquisitionTimes.size
+    };
+  }
+
+  startHealthCheck() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+    }
+
+    this.healthCheckInterval = setInterval(async () => {
+      try {
+        await this.performHealthCheck();
+      } catch (error) {
+        console.error('Error in page pool health check:', error);
+      }
+    }, BROWSER_HEALTH_CHECK_INTERVAL);
+
+    // Ensure the interval doesn't keep the process alive
+    this.healthCheckInterval.unref();
+  }
 }
 
-const acquirePage = async () => {
-  if (!pagePool) {
-    throw new Error('Page pool not initialized')
-  }
-  return await pagePool.acquire()
-}
+// Create singleton instances
+const browserPool = new BrowserPool();
+const pagePool = new PagePool(browserPool);
 
-const releasePage = async (page) => {
-  if (!pagePool) {
-    throw new Error('Page pool not initialized')
-  }
-  try {
-    // Just navigate to blank page to clear any state
-    await page.goto('about:blank')
-    await pagePool.release(page)
-  } catch (err) {
-    console.error('Error releasing page:', err)
-    // Force destroy the page if we can't clean it
-    await pagePool.destroy(page)
-  }
-}
-
-const cleanup = async () => {
-  if (pagePool) {
-    await pagePool.drain()
-    await pagePool.clear()
-  }
-  if (browserPool) {
-    await browserPool.drain()
-    await browserPool.clear()
-  }
-}
+// Handle process termination
+['SIGINT', 'SIGTERM', 'exit'].forEach(signal => {
+  process.once(signal, async () => {
+    await pagePool.cleanup();
+    await browserPool.cleanup();
+    process.exit(0);
+  });
+});
 
 module.exports = {
-  initializeBrowserPool,
-  acquirePage,
-  releasePage,
-  cleanup,
-  getPoolStats: () => ({
-    browser: browserPool ? {
-      size: browserPool.size,
-      available: browserPool.available,
-      pending: browserPool.pending,
-      max: browserPool.max,
-      min: browserPool.min
-    } : null,
-    page: pagePool ? {
-      size: pagePool.size,
-      available: pagePool.available,
-      pending: pagePool.pending,
-      max: pagePool.max,
-      min: pagePool.min
-    } : null
-  })
-}
+  initializeBrowserPool: async () => {
+    await browserPool.initialize();
+    await pagePool.initialize();
+    console.log('Browser and page pools initialized');
+  },
+  acquirePage: () => pagePool.acquirePage(),
+  releasePage: (page) => pagePool.releasePage(page),
+  getPoolStats: async () => ({
+    browserPool: await browserPool.getPoolStats(),
+    pagePool: await pagePool.getPoolStats()
+  }),
+
+  cleanup: async () => {
+    await pagePool.cleanup();
+    await browserPool.cleanup();
+  }
+};
+

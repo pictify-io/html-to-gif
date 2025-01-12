@@ -7,6 +7,7 @@ const cors = require('@fastify/cors')
 const fastifyHttpProxy = require('@fastify/http-proxy')
 const db = require('./db')
 const { initializeBrowserPool, cleanup } = require('./service/browserpool')
+const fs = require('fs')
 
 const port = process.env.PORT || 3001
 
@@ -90,6 +91,47 @@ fastify.register(fastifyHttpProxy, {
   upstream: 'https://app.posthog.com',
 })
 
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT. Cleaning up...');
+  try {
+    // Remove PID file
+    fs.unlinkSync('server.pid');
+  } catch (err) {
+    // Ignore if file doesn't exist
+  }
+
+  try {
+    // Cleanup browser pools
+    await cleanup();
+    console.log('Cleanup completed successfully');
+  } catch (err) {
+    console.error('Error during cleanup:', err);
+  }
+
+  process.exit(0);
+});
+
+// Add SIGTERM handler
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM. Cleaning up...');
+  try {
+    // Remove PID file
+    fs.unlinkSync('server.pid');
+  } catch (err) {
+    // Ignore if file doesn't exist
+  }
+
+  try {
+    // Cleanup browser pools
+    await cleanup();
+    console.log('Cleanup completed successfully');
+  } catch (err) {
+    console.error('Error during cleanup:', err);
+  }
+
+  process.exit(0);
+});
+
 const startServer = async () => {
   try {
     await db()
@@ -99,17 +141,13 @@ const startServer = async () => {
     console.log('Page pool initialized')
 
     await fastify.listen({ port })
+    // Write PID file after server starts
+    fs.writeFileSync('server.pid', process.pid.toString())
     console.log(`Server listening on port ${port}`)
   } catch (err) {
     console.error('Error starting server:', err)
     process.exit(1)
   }
 }
-
-process.on('SIGINT', async () => {
-  console.log('Shutting down server...')
-  await cleanup()
-  process.exit(0)
-})
 
 startServer()

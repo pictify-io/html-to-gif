@@ -198,7 +198,7 @@ const healthCheckHandler = async (req, res) => {
     await releasePage(page);
     return res.send({
       status: 'ok',
-      poolStats: getPoolStats()
+      poolStats: await getPoolStats()
     });
   } catch (error) {
     console.error('Health check failed:', error);

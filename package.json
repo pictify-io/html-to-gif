@@ -34,6 +34,7 @@
     "nodemon": "^3.0.1",
     "prettier": "^3.3.3",
     "puppeteer": "^20.9.0",
-    "sharp": "^0.32.4"
+    "sharp": "^0.32.4",
+    "pidusage": "^3.0.2"
   }
 }
