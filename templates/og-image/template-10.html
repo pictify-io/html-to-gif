@@ -1,129 +1,188 @@
 <!DOCTYPE html>
-<html lang="en" style="font-family: 'Roboto Mono', monospace;">
-
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Cyberpunk Glitch</title>
   <style>
     :root {
-      --primary-color: #000000;
-      --secondary-color: #ffffff;
+      --primary-color: #7C3AED;
+      --secondary-color: #C084FC;
+      --accent-color: #F472B6;
+      --text-color: #FFFFFF;
+      --bg-color: #1F1F23;
     }
 
-    body,
-    html {
+    body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      font-family: 'Cabinet Grotesk', system-ui, sans-serif;
+      background: var(--bg-color);
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background-color: var(--primary-color);
-      color: var(--secondary-color);
+      position: relative;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      position: relative;
       overflow: hidden;
+      padding: 60px;
+      box-sizing: border-box;
     }
 
-    .glitch {
+    .gradient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--primary-color);
+      top: -200px;
+      right: -100px;
+      opacity: 0.3;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--secondary-color);
+      bottom: -100px;
+      left: -100px;
+      opacity: 0.2;
+    }
+
+    .orb-3 {
+      width: 200px;
+      height: 200px;
+      background: var(--accent-color);
+      top: 50%;
+      right: 10%;
+      opacity: 0.15;
+    }
+
+    .content-area {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 1000px;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(40px);
+      border-radius: 30px;
+      padding: 60px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #template-logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+      position: relative;
+      z-index: 2;
+    }
+
+    #template-heading {
+      font-size: 80px;
+      font-weight: 800;
+      background: linear-gradient(135deg, 
+        var(--secondary-color),
+        var(--accent-color));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      line-height: 1;
+      position: relative;
+      display: inline-block;
+    }
+
+    .heading-shadow {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAiSURBVHgBY2RgYPj///9/BhTw5s0bBmYGBgYGdPH///8zAABFSgy0Bd3tYAAAAABJRU5ErkJggg==');
-      opacity: 0.1;
-      animation: glitch 2s linear infinite;
-    }
-
-    @keyframes glitch {
-      0% {
-        transform: translate(0);
-      }
-
-      20% {
-        transform: translate(-5px, 5px);
-      }
-
-      40% {
-        transform: translate(-5px, -5px);
-      }
-
-      60% {
-        transform: translate(5px, 5px);
-      }
-
-      80% {
-        transform: translate(5px, -5px);
-      }
-
-      100% {
-        transform: translate(0);
-      }
-    }
-
-    #template-logo {
-      margin-bottom: 30px;
-      filter: drop-shadow(0 0 10px #0ff);
-    }
-
-    #template-heading {
-      font-size: 72px;
-      margin: 0 0 20px;
-      text-shadow: 2px 2px #f0f, -2px -2px #0ff;
-      animation: textglitch 3s infinite;
-    }
-
-    @keyframes textglitch {
-      0% {
-        text-shadow: 2px 2px #f0f, -2px -2px #0ff;
-      }
-
-      25% {
-        text-shadow: -2px 2px #f0f, 2px -2px #0ff;
-      }
-
-      50% {
-        text-shadow: 2px -2px #f0f, -2px 2px #0ff;
-      }
-
-      75% {
-        text-shadow: -2px -2px #f0f, 2px 2px #0ff;
-      }
-
-      100% {
-        text-shadow: 2px 2px #f0f, -2px -2px #0ff;
-      }
+      filter: blur(20px);
+      opacity: 0.3;
+      background: var(--primary-color);
+      z-index: -1;
     }
 
     #template-subheading {
-      font-size: 24px;
-      max-width: 80%;
-      text-align: center;
+      font-size: 26px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 24px;
       line-height: 1.4;
-      color: #f0f;
+      max-width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .accent-dots {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      opacity: 0.3;
+    }
+
+    .dots-1 {
+      top: 20px;
+      left: 20px;
+      background: radial-gradient(circle, var(--accent-color) 2px, transparent 2px) 0 0 / 15px 15px;
+    }
+
+    .dots-2 {
+      bottom: 20px;
+      right: 20px;
+      background: radial-gradient(circle, var(--secondary-color) 2px, transparent 2px) 0 0 / 15px 15px;
+    }
+
+    .highlight {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+
+    .emoji {
+      font-size: 1.2em;
+      vertical-align: middle;
+      margin: 0 4px;
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <div class="glitch"></div>
-    <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
-      id="template-logo"
-      width="100px"
-      >
-    <h1 id="template-heading">OG Image Generator</h1>
-    <p id="template-subheading">Convert HTML to Image or Gif using free HTML to Image API by Pictify.io. Perfect for
-      developers to generate images from HTML at scale with ease.</p>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    
+    <div class="content-area">
+      <div class="glass-card">
+        <div class="accent-dots dots-1"></div>
+        <div class="accent-dots dots-2"></div>
+        <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo"
+          id="template-logo">
+        <h1 id="template-heading">
+          Create Magic with AI
+        </h1>
+        <p id="template-subheading">
+          Transform your content into eye-catching social media images with our AI-powered OG image generator
+        </p>
+      </div>
+    </div>
   </div>
 </body>
-
 </html>

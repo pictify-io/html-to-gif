@@ -1,33 +1,32 @@
-<!DOCTYPE html>
-<html lang="en" style="font-family: 'Inter', sans-serif;">
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Modern Minimalist</title>
   <style>
     :root {
-      --primary-color: #f0f4f8;
-      --secondary-color: #2d3748;
-      --accent-color: #4a90e2;
+      --primary-color: #2563eb;
+      --secondary-color: #1e293b;
     }
 
     body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background-color: var( --primary-color);
+      background-color: var(--primary-color);
       display: flex;
       justify-content: center;
       align-items: center;
       position: relative;
       overflow: hidden;
+      padding: 60px;
+      box-sizing: border-box;
     }
 
     .background-pattern {
@@ -36,44 +35,86 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-image: radial-gradient(var(--accent-color) 2px, transparent 2px);
-      background-size: 30px 30px;
-      opacity: 0.1;
+      background-image: radial-gradient(circle at 20% 20%, rgba(30, 41, 59, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(30, 41, 59, 0.1) 0%, transparent 50%);
+      opacity: 0.8;
     }
 
-    .content {
-      z-index: 1;
-      text-align: left;
-      padding: 40px;
-      max-width: 80%;
+    .content-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      border: 1px solid rgba(30, 41, 59, 0.2);
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .accent-line {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: var(--secondary-color);
+      border-radius: 0 0 4px 4px;
     }
 
     #template-logo {
-      margin-bottom: 30px;
+      width: 80px;
+      height: auto;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     }
 
     #template-heading {
-      font-size: 64px;
-      color: var(--secondary-color);
-      margin: 0 0 20px;
+      font-size: 72px;
       font-weight: 800;
-      line-height: 1.2;
+      text-align: center;
+      color: var(--secondary-color);
+      margin: 0;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     #template-subheading {
-      font-size: 24px;
-      color: var(--secondary-color);
-      opacity: 0.8;
-      max-width: 80%;
+      font-size: 26px;
       line-height: 1.5;
+      text-align: center;
+      color: var(--secondary-color);
       margin: 0;
+      font-weight: 600;
+      max-width: 800px;
+      opacity: 0.85;
     }
 
-    .accent-bar {
-      width: 100px;
-      height: 6px;
-      background-color: var(--accent-color);
-      margin: 30px 0;
+    .highlight-box {
+      position: absolute;
+      border-radius: 16px;
+      background: var(--secondary-color);
+      opacity: 0.1;
+    }
+
+    .highlight-1 {
+      width: 200px;
+      height: 200px;
+      top: -30px;
+      left: -30px;
+      transform: rotate(-15deg);
+    }
+
+    .highlight-2 {
+      width: 150px;
+      height: 150px;
+      bottom: -20px;
+      right: -20px;
+      transform: rotate(15deg);
     }
   </style>
 </head>
@@ -81,15 +122,15 @@
 <body>
   <div class="container">
     <div class="background-pattern"></div>
-    <div class="content">
-      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo" id="template-logo"
-        width="100px">
+    <div class="content-wrapper">
+      <div class="accent-line"></div>
+      <div class="highlight-box highlight-1"></div>
+      <div class="highlight-box highlight-2"></div>
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo"
+        id="template-logo">
       <h1 id="template-heading">OG Image Generator</h1>
-      <div class="accent-bar"></div>
-      <p id="template-subheading">Create attractive OG images using Pictify.io API.
-        <br>
-        Perfect for developers to generate images from HTML at scale with ease.
-      </p>
+      <p id="template-subheading">Create stunning social media cards with our powerful API. Transform your content into
+        engaging visual experiences.</p>
     </div>
   </div>
 </body>

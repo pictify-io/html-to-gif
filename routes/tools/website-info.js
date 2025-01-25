@@ -1,18 +1,7 @@
 const getWebsiteData = require('../../lib/og-image');
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
-
-// Create a single browser instance
-let browser;
-
-// Initialize the browser when the module is loaded
-(async () => {
-  browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-})();
+const browserPool = require('../../service/browserpool');
 
 const websiteInfo = async (req, res) => {
   const { url } = req.query;
@@ -21,7 +10,9 @@ const websiteInfo = async (req, res) => {
   }
 
   try {
-    const data = await getWebsiteData({ url, browser });
+    const page = await browserPool.acquirePage();
+    const data = await getWebsiteData({ url, page });
+    await browserPool.releasePage(page);
     return res.send(data);
   } catch (err) {
     console.error('Error in websiteInfo:', err);
@@ -54,14 +45,6 @@ module.exports = async (fastify) => {
   fastify.get('/website-info', websiteInfo);
   fastify.get('/templates/og-image', getTemplate);
   fastify.get('/templates/og-image/all', getAllTemplates);
-
-  // Close the browser when the server is shutting down
-  fastify.addHook('onClose', async (instance, done) => {
-    if (browser) {
-      await browser.close();
-    }
-    done();
-  });
 }
 
 module.exports.autoPrefix = '/api/tools';

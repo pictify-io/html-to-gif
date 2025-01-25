@@ -1,24 +1,19 @@
-<!DOCTYPE html>
 <html lang="en" style="font-family: Arial, Helvetica, sans-serif;">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multiple Blob Background</title>
   <style>
     :root {
       --primary-color: #000000;
       --secondary-color: #ffffff;
     }
 
-    body,
-    html {
+    body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
       overflow: hidden;
-     }
+    }
 
     .container {
       position: relative;
@@ -31,7 +26,8 @@
       position: absolute;
       border-radius: 50%;
       filter: blur(40px);
-      opacity: 0.7;
+      opacity: 0.3;
+      background-color: var(--secondary-color);
     }
 
     .blob1 {
@@ -69,7 +65,7 @@
     .content {
       position: relative;
       z-index: 1;
-      padding: 20px;
+      padding: 40px;
       color: var(--secondary-color);
       text-align: center;
       height: 100%;
@@ -77,16 +73,31 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      box-sizing: border-box;
     }
 
     h1 {
-      font-size: 4rem;
+      font-size: 72px;
       margin-bottom: 0.5em;
+      color: var(--secondary-color);
+      line-height: 1.2;
+      max-width: 90%;
+      word-wrap: break-word;
     }
 
     p {
-      font-size: 2em;
+      font-size: 32px;
       max-width: 80%;
+      color: var(--secondary-color);
+      line-height: 1.4;
+      word-wrap: break-word;
+      opacity: 0.9;
+    }
+
+    #template-logo {
+      width: 150px;
+      height: auto;
+      margin-bottom: 30px;
     }
 
   </style>

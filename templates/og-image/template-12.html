@@ -1,83 +1,195 @@
 <!DOCTYPE html>
-<html lang="en" style="font-family: 'Helvetica Neue', Arial, sans-serif;">
-
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Minimalist Monochrome</title>
   <style>
     :root {
-      --primary-color: #000000;
-      --secondary-color: #ffffff;
+      --primary-color: #2563eb;
+      --secondary-color: #1e293b;
+      --accent-color: #64748b;
+      --text-color: var(--secondary-color);
+      --pattern-color: rgba(30, 41, 59, 0.1);
     }
 
-    body,
-    html {
+    body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background-color: #ffffff;
-      display: flex;
-    }
-
-    .left-panel {
-      width: 40%;
-      background-color: #000000;
+      position: relative;
+      background: var(--primary-color);
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 80px;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--primary-color) 90%, white),
+        var(--primary-color)
+      );
     }
 
-    .right-panel {
-      width: 60%;
-      padding: 60px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    .geometric-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        repeating-linear-gradient(45deg, var(--pattern-color) 0, var(--pattern-color) 1px, transparent 0, transparent 50%);
+      background-size: 30px 30px;
+      opacity: 0.2;
+      transform: rotate(-5deg) scale(1.5);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 900px;
     }
 
     #template-logo {
-      filter: invert(1);
+      width: 100px;
+      height: auto;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     }
 
     #template-heading {
-      font-size: 64px;
-      color: #000000;
-      margin: 0 0 20px;
-      font-weight: 900;
+      font-size: 80px;
+      font-weight: 800;
+      color: white;
+      margin: 0;
       line-height: 1.1;
+      letter-spacing: -1px;
+      position: relative;
     }
 
     #template-subheading {
-      font-size: 24px;
-      color: #333333;
+      font-size: 28px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 24px;
       line-height: 1.4;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .floating-shapes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .floating-shape {
+      position: absolute;
+      background: white;
+      opacity: 0.1;
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      right: -100px;
+      top: -100px;
+      transform: rotate(45deg);
+    }
+
+    .shape-2 {
+      width: 300px;
+      height: 300px;
+      left: -50px;
+      bottom: -50px;
+      transform: rotate(-30deg);
+    }
+
+    .shape-3 {
+      width: 200px;
+      height: 200px;
+      right: 20%;
+      bottom: -30px;
+      transform: rotate(15deg);
+      opacity: 0.05;
+    }
+
+    .highlight-text {
+      display: inline-block;
+      position: relative;
+      z-index: 1;
+    }
+
+    .highlight-text::after {
+      content: '';
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      bottom: 8px;
+      height: 35%;
+      background-color: rgba(255, 255, 255, 0.2);
+      z-index: -1;
+      transform: skew(-15deg);
+    }
+
+    .accent-circles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .accent-circle {
+      position: absolute;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+
+    .circle-1 {
+      width: 100px;
+      height: 100px;
+      top: 20%;
+      right: 15%;
+    }
+
+    .circle-2 {
+      width: 150px;
+      height: 150px;
+      bottom: 25%;
+      left: 18%;
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <div class="left-panel">
-      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
-        id="template-logo"
-        width="100px"
-        >
+    <div class="geometric-pattern"></div>
+    <div class="floating-shapes">
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
     </div>
-    <div class="right-panel">
-      <h1 id="template-heading">OG Image Generator</h1>
-      <p id="template-subheading">Create attractive OG images using Pictify.io API.
-        <br>
-        Perfect for developers to generate images from HTML at scale with ease.
+    <div class="accent-circles">
+      <div class="accent-circle circle-1"></div>
+      <div class="accent-circle circle-2"></div>
+    </div>
+    <div class="content">
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo"
+        id="template-logo">
+      <h1 id="template-heading">
+        <span class="highlight-text">Elevate</span> Your<br>Social Presence
+      </h1>
+      <p id="template-subheading">Create stunning OG images that make your content stand out across all social platforms.
       </p>
     </div>
   </div>
 </body>
-
 </html>

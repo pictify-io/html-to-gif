@@ -1,105 +1,148 @@
-<!DOCTYPE html>
 <html lang="en" style="font-family: 'Poppins', sans-serif;">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Colorful Waves</title>
   <style>
     :root {
-      --primary-color: #ffffff;
-      --secondary-color: #333;
+      --primary-color: #f8f9fa;
+      --secondary-color: #2c3e50;
+      --accent-color: #e74c3c;
     }
 
     body,
     html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background-color: var(--primary-color);
+      background: var(--primary-color);
       position: relative;
       overflow: hidden;
     }
 
-    .wave {
+    .geometric-pattern {
       position: absolute;
-      width: 200%;
-      height: 200%;
-      top: -50%;
-      left: -50%;
-      border-radius: 40%;
-      transform: rotate(295deg);
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(45deg, transparent 48%, var(--accent-color) 49%, var(--accent-color) 51%, transparent 52%) 50px 50px,
+        linear-gradient(-45deg, transparent 48%, var(--accent-color) 49%, var(--accent-color) 51%, transparent 52%) 50px 50px;
+      background-size: 100px 100px;
+      opacity: 0.1;
     }
-
-    .wave1 {
-      background-color: color-mix(in srgb, var(--primary-color) 70%, rgba(76, 175, 80, 0.3));
-    }
-
-    .wave2 {
-      background-color: color-mix(in srgb, var(--primary-color) 70%, rgba(33, 150, 243, 0.3));
-      animation-delay: -5s;
-    }
-
-    .wave3 {
-      background-color: color-mix(in srgb, var(--primary-color) 70%, rgba(255, 193, 7, 0.3));
-      animation-delay: -10s;
-    }
-
 
     .content {
       position: relative;
       z-index: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      padding: 50px;
-      box-sizing: border-box;
-      text-align: center;
+      align-items: flex-start;
+      padding: 60px;
+      margin-left: 60px;
+      margin-top: 80px;
+      max-width: 900px;
     }
 
     #template-logo {
-      margin-bottom: 30px;
+      width: 60px;
+      height: auto;
+      margin-bottom: 50px;
+      filter: none;
     }
 
     #template-heading {
-      font-size: 64px;
+      font-size: 110px;
       color: var(--secondary-color);
-      margin: 0 0 20px;
-      font-weight: 700;
+      margin: 0 0 45px;
+      font-weight: 900;
+      line-height: 1.1;
+      position: relative;
+    }
+
+    #template-heading::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -20px;
+      width: 100px;
+      height: 8px;
+      background: var(--accent-color);
     }
 
     #template-subheading {
-      font-size: 22px;
-      color: color-mix(in srgb, var(--secondary-color) 80%, var(--primary-color));
-      max-width: 70%;
-      line-height: 1.5;
+      font-size: 32px;
+      color: var(--secondary-color);
+      opacity: 0.8;
+      max-width: 600px;
+      line-height: 1.4;
+      font-weight: 400;
+    }
+
+    .geometric-shapes {
+      position: absolute;
+      right: -150px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+    }
+
+    .shape {
+      position: absolute;
+      border: 4px solid var(--secondary-color);
+      opacity: 0.1;
+    }
+
+    .circle {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      top: 150px;
+      left: 150px;
+    }
+
+    .square {
+      width: 300px;
+      height: 300px;
+      transform: rotate(45deg);
+      top: 150px;
+      left: 150px;
+    }
+
+    .triangle {
+      width: 0;
+      height: 0;
+      border-left: 200px solid transparent;
+      border-right: 200px solid transparent;
+      border-bottom: 346px solid var(--secondary-color);
+      opacity: 0.05;
+      top: 100px;
+      left: 100px;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="wave wave1"></div>
-    <div class="wave wave2"></div>
-    <div class="wave wave3"></div>
+    <div class="geometric-pattern"></div>
+    <div class="geometric-shapes">
+      <div class="shape circle"></div>
+      <div class="shape square"></div>
+      <div class="shape triangle"></div>
+    </div>
     <div class="content">
-      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
-        id="template-logo"
-        width="100px"
-      >
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo" id="template-logo">
       <h1 id="template-heading">OG Image Generator</h1>
-      <p id="template-subheading">Create attractive OG images using Pictify.io API.
-        <br>
-        Perfect for developers to generate images from HTML at scale with ease.
-      </p>
+      <p id="template-subheading">Create attractive OG images using Pictify.io API.<br>Perfect for developers to generate
+        images from HTML at scale with ease.</p>
     </div>
   </div>
 </body>
