@@ -1,0 +1,134 @@
+<html lang="en" style="font-family: Arial, Helvetica, sans-serif;">
+
+<head>
+  <style>
+    :root {
+      --primary-color: #000000;
+      --secondary-color: #ffffff;
+      --accent-color: #FF3366;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      background: var(--primary-color);
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 85%, var(--secondary-color)));
+    }
+
+    .accent-line {
+      position: absolute;
+      width: 100%;
+      height: 8px;
+      background: var(--secondary-color);
+      opacity: 0.2;
+      top: 0;
+      left: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 60px;
+      color: var(--secondary-color);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: color-mix(in srgb, var(--secondary-color) 5%, transparent);
+      border-left: 8px solid var(--secondary-color);
+      padding: 60px;
+      margin-left: 40px;
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -8px;
+      width: 8px;
+      height: 100%;
+      background: var(--secondary-color);
+      box-shadow: 0 0 30px var(--secondary-color);
+      opacity: 0.8;
+    }
+
+    h1 {
+      font-size: 84px;
+      margin: 0;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      color: var(--secondary-color);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px color-mix(in srgb, var(--primary-color) 50%, black);
+    }
+
+    p {
+      font-size: 32px;
+      line-height: 1.4;
+      color: var(--secondary-color);
+      margin: 0;
+      max-width: 90%;
+      opacity: 0.9;
+    }
+
+    .highlight {
+      color: var(--secondary-color);
+      font-weight: 700;
+      opacity: 0.9;
+    }
+
+    #template-logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 30px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--accent-color);
+      color: var(--secondary-color);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="accent-line"></div>
+    <div class="content">
+      <div class="card">
+        <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+          id="template-logo">
+        <h1 id="template-heading">Pictify</h1>
+        <p id="template-subheading">Create <span class="highlight">stunning visuals</span> that dominate social feeds.
+          Stand out with professional-grade designs.</p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

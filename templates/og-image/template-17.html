@@ -1,0 +1,170 @@
+<html lang="en" style="font-family: Arial, Helvetica, sans-serif;">
+
+<head>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e293b;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      background: var(--primary-color);
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg,
+          var(--primary-color),
+          color-mix(in srgb, var(--primary-color) 80%, white));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .diagonal-lines {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: repeating-linear-gradient(45deg,
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0.05) 2px,
+          transparent 2px,
+          transparent 12px);
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .content {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      padding: 60px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .content::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--secondary-color);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 40px;
+      gap: 30px;
+    }
+
+    .logo-container {
+      background: rgba(255, 255, 255, 1);
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid rgba(30, 41, 59, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      font-size: 82px;
+      color: var(--secondary-color);
+      margin: 0;
+      font-weight: 900;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+
+    p {
+      font-size: 32px;
+      color: var(--secondary-color);
+      line-height: 1.4;
+      margin: 30px 0 0 0;
+      opacity: 0.85;
+    }
+
+
+    #template-logo {
+      width: 100px;
+      height: auto;
+    }
+
+    .tag {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 1.2em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .accent-shape {
+      position: absolute;
+      background: var(--secondary-color);
+      opacity: 0.03;
+      border-radius: 50%;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      top: -200px;
+      right: -200px;
+    }
+
+    .shape-2 {
+      width: 300px;
+      height: 300px;
+      bottom: -150px;
+      left: -150px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="diagonal-lines"></div>
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="accent-shape shape-1"></div>
+        <div class="accent-shape shape-2"></div>
+        <div class="header">
+          <div class="logo-container">
+            <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
+              id="template-logo">
+          </div>
+          <h1 id="template-heading">Pictify</h1>
+        </div>
+        <p id="template-subheading">Unleash your brand's potential with our cutting-edge design system. Make an
+          unforgettable impression.</p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

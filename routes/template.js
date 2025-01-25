@@ -6,6 +6,7 @@ const templateSchema = {
   properties: {
     html: { type: 'string' },
     name: { type: 'string' },
+    type: { type: 'string' },
     grapeJSData: { type: 'object' },
     createdAt: { type: 'string' },
     variables: { type: 'array', items: { type: 'string' } },
@@ -87,6 +88,17 @@ const searchTemplatesSchema = {
   },
 }
 
+const getTemplatesForTypeSchema = {
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        templates: { type: 'array', items: templateSchema },
+      },
+    },
+  },
+}
+
 const getTemplates = async (req, res) => {
   const { user } = req
   const templates = await Template.find({ createdBy: user._id })
@@ -96,7 +108,7 @@ const getTemplates = async (req, res) => {
 const createTemplate = async (req, res) => {
   const { user } = req
 
-  const { html, name, grapeJSData, width, height } = req.body
+  const { html, name, grapeJSData, width, height, type } = req.body
   const variables = []
   const variableRegex = /{{(.*?)}}/g
   let match
@@ -111,6 +123,7 @@ const createTemplate = async (req, res) => {
     height,
     createdBy: user._id,
     name,
+    type,
   })
   return res.send({ template })
 }
@@ -167,6 +180,13 @@ const searchTemplates = async (req, res) => {
   return res.send({ templates })
 }
 
+const getTemplatesForType = async (req, res) => {
+  const { user } = req
+  const { type } = req.params
+  const templates = await Template.find({ type, createdBy: user._id })
+  return res.send({ templates })
+}
+
 module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
     fastify.register(decorateUser)
@@ -176,6 +196,7 @@ module.exports = async (fastify) => {
     fastify.get('/:uid', { schema: getTemplateSchema }, getTemplate)
     fastify.put('/:uid', { schema: updateTemplateSchema }, updateTemplate)
     fastify.delete('/:uid', { schema: deleteTemplateSchema }, deleteTemplate)
+    fastify.get('/type/:type', { schema: getTemplatesForTypeSchema }, getTemplatesForType)
   })
 }
 

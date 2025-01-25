@@ -1,33 +1,35 @@
-<!DOCTYPE html>
 <html lang="en" style="font-family: 'Inter', sans-serif;">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Modern Geometric Design</title>
   <style>
     :root {
       --primary-color: #ffffff;
       --secondary-color: #333333;
-      --accent-color: #3498db;
     }
 
     body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background-color: var(--primary-color);
+      background: linear-gradient(135deg,
+        var(--primary-color),
+        color-mix(in srgb, var(--primary-color) 97%, var(--secondary-color))
+      );
       position: relative;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 60px;
+      box-sizing: border-box;
     }
 
     .geometric-pattern {
@@ -36,47 +38,99 @@
       left: 0;
       right: 0;
       bottom: 0;
-      opacity: 0.1;
+      opacity: 0.06;
       background-image: 
-        linear-gradient(30deg, var(--accent-color) 12%, transparent 12.5%, transparent 87%, var(--accent-color) 87.5%, var(--accent-color)),
-        linear-gradient(150deg, var(--accent-color) 12%, transparent 12.5%, transparent 87%, var(--accent-color) 87.5%, var(--accent-color)),
-        linear-gradient(30deg, var(--accent-color) 12%, transparent 12.5%, transparent 87%, var(--accent-color) 87.5%, var(--accent-color)),
-        linear-gradient(150deg, var(--accent-color) 12%, transparent 12.5%, transparent 87%, var(--accent-color) 87.5%, var(--accent-color)),
-        linear-gradient(60deg, var(--accent-color) 25%, transparent 25.5%, transparent 75%, var(--accent-color) 75%, var(--accent-color)),
-        linear-gradient(60deg, var(--accent-color) 25%, transparent 25.5%, transparent 75%, var(--accent-color) 75%, var(--accent-color));
-      background-size: 80px 140px;
-      background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+        linear-gradient(30deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(150deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(30deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(150deg, var(--secondary-color) 12%, transparent 12.5%, transparent 87%, var(--secondary-color) 87.5%, var(--secondary-color)),
+        linear-gradient(90deg, 
+          transparent 0%,
+          transparent 45%,
+          color-mix(in srgb, var(--secondary-color) 3%, transparent) 45%,
+          color-mix(in srgb, var(--secondary-color) 3%, transparent) 55%,
+          transparent 55%,
+          transparent 100%
+        ),
+        linear-gradient(0deg, 
+          transparent 0%,
+          transparent 45%,
+          color-mix(in srgb, var(--secondary-color) 3%, transparent) 45%,
+          color-mix(in srgb, var(--secondary-color) 3%, transparent) 55%,
+          transparent 55%,
+          transparent 100%
+        );
+      background-size: 80px 140px, 80px 140px, 80px 140px, 80px 140px, 100px 100px, 100px 100px;
+      background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 0 0;
     }
 
     .content {
       position: relative;
       z-index: 2;
       text-align: center;
-      padding: 40px;
-      max-width: 80%;
-      background-color: var(--primary-color);
-      opacity: 0.9;
-      border-radius: 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 80px;
+      max-width: 85%;
+      background: linear-gradient(135deg,
+        var(--primary-color),
+        color-mix(in srgb, var(--primary-color) 98%, var(--secondary-color))
+      );
+      border-radius: 40px;
+      box-shadow: 
+        0 4px 6px color-mix(in srgb, var(--secondary-color) 10%, transparent),
+        0 20px 40px color-mix(in srgb, var(--secondary-color) 5%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--secondary-color) 8%, transparent);
+      backdrop-filter: blur(20px);
+    }
+
+    .content::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--secondary-color) 15%, transparent),
+        transparent 50%,
+        color-mix(in srgb, var(--secondary-color) 15%, transparent)
+      );
+      border-radius: 42px;
+      z-index: -1;
     }
 
     #template-logo {
-      margin-bottom: 20px;
+      width: 140px;
+      height: auto;
+      margin-bottom: 50px;
+      filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--secondary-color) 25%, transparent));
     }
 
     #template-heading {
-      font-size: 48px;
-      color: var(--secondary-color);
-      margin: 0 0 20px;
-      font-weight: 700;
+      font-size: 96px;
+      background: linear-gradient(135deg,
+        var(--secondary-color),
+        color-mix(in srgb, var(--secondary-color) 85%, transparent)
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0 0 40px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -3px;
+      text-shadow: 4px 4px 8px color-mix(in srgb, var(--secondary-color) 15%, transparent);
     }
 
     #template-subheading {
-      font-size: 32px;
+      font-size: 36px;
       color: var(--secondary-color);
-      opacity: 0.8;
       line-height: 1.4;
       margin: 0;
+      opacity: 0.85;
+      max-width: 85%;
+      font-weight: 500;
+      margin: 0 auto;
+      text-shadow: 2px 2px 4px color-mix(in srgb, var(--secondary-color) 10%, transparent);
     }
   </style>
 </head>
@@ -86,7 +140,7 @@
     <div class="geometric-pattern"></div>
     <div class="content">
       <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo" id="template-logo"
-        width="100px">
+        width="140px">
       <h1 id="template-heading">OG Image Generator</h1>
       <p id="template-subheading">Create attractive OG images using Pictify.io API.
         <br>

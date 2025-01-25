@@ -122,11 +122,7 @@ const createPublicImageHandler = async (req, res) => {
   const { html, url, width, height, selector, fileExtension } = req.body;
   const allowedOrigins = ['https://pictify.io', 'https://www.pictify.io'];
   const origin = req.headers['origin'];
-
-  if (!allowedOrigins.includes(origin)) {
-    return res.status(403).send({ error: 'Forbidden' });
-  }
-  let image
+ let image
   let page
   try {
     page = await acquirePage()

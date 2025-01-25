@@ -1,52 +1,93 @@
-<!DOCTYPE html>
-<html lang="en" style="font-family: 'Helvetica Neue', Arial, sans-serif;">
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Minimalist Gradient</title>
   <style>
     :root {
       --primary-color: #6e8efb;
-      --secondary-color: #a777e3;
+      --secondary-color: #ffffff;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
     }
 
     body,
     html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      overflow: hidden;
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      background: linear-gradient(135deg, 
+        var(--primary-color),
+        color-mix(in srgb, var(--primary-color) 80%, var(--secondary-color))
+      );
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      color: white;
+      color: var(--secondary-color);
       text-align: center;
+      padding: 60px;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      width: 150%;
+      height: 150%;
+      top: -25%;
+      left: -25%;
+      background: radial-gradient(
+        circle at center,
+        color-mix(in srgb, var(--secondary-color) 10%, transparent),
+        transparent 60%
+      );
+      opacity: 0.4;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      background: color-mix(in srgb, var(--primary-color) 90%, transparent);
+      padding: 60px;
+      border-radius: 30px;
+      backdrop-filter: blur(10px);
+      border: 1px solid color-mix(in srgb, var(--secondary-color) 20%, transparent);
+      box-shadow: 0 20px 40px color-mix(in srgb, var(--primary-color) 50%, transparent);
     }
 
     #template-logo {
       width: 120px;
-      margin-bottom: 30px;
+      height: auto;
+      margin-bottom: 40px;
     }
 
     #template-heading {
-      font-size: 72px;
-      margin: 0 0 20px;
+      font-size: 84px;
+      margin: 0 0 30px;
       letter-spacing: -2px;
+      color: var(--secondary-color);
+      line-height: 1.1;
+      max-width: 90%;
+      word-wrap: break-word;
+      font-weight: 800;
     }
 
     #template-subheading {
-      font-size: 24px;
+      font-size: 32px;
       max-width: 80%;
       line-height: 1.4;
+      color: var(--secondary-color);
+      margin: 0 auto;
+      word-wrap: break-word;
       opacity: 0.9;
+      font-weight: 400;
     }
   </style>
 </head>

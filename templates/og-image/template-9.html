@@ -1,89 +1,180 @@
-<!DOCTYPE html>
-<html lang="en" style="font-family: 'Exo 2', sans-serif;">
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OG Image - Futuristic Hologram</title>
   <style>
     :root {
-      --primary-color: #000000;
-      --secondary-color: #ffffff;
+      --primary-color: #2563eb;
+      --secondary-color: #1e293b;
+      --accent-color: #64748b;
     }
 
-    body,
-    html {
+    body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      height: 630px;
+      width: 1200px;
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
     }
 
     .container {
       width: 100%;
       height: 100%;
-      background-color: var(--primary-color);
+      background: radial-gradient(
+        circle at center,
+        color-mix(in srgb, var(--primary-color) 80%, white),
+        var(--primary-color)
+      );
       display: flex;
       justify-content: center;
       align-items: center;
       position: relative;
       overflow: hidden;
+      padding: 60px;
+      box-sizing: border-box;
     }
 
-    .hologram {
+    .grid {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: repeating-linear-gradient(0deg,
-          rgba(0, 255, 255, 0.1),
-          rgba(0, 255, 255, 0.1) 1px,
-          transparent 1px,
-          transparent 2px);
-      pointer-events: none;
+      background: 
+        linear-gradient(transparent 50%, var(--secondary-color) 50%),
+        linear-gradient(90deg, transparent 50%, var(--secondary-color) 50%);
+      background-size: 40px 40px;
+      opacity: 0.1;
+      transform: perspective(500px) rotateX(60deg);
+    }
+
+    .scan-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--secondary-color);
+      opacity: 0.15;
     }
 
     .content {
       text-align: center;
-      color: var(--secondary-color);
       z-index: 1;
+      padding: 60px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid var(--secondary-color);
+      border-radius: 20px;
+      position: relative;
+      max-width: 800px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .content::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));
+      border-radius: 22px;
+      z-index: -1;
+      opacity: 0.1;
     }
 
     #template-logo {
-      margin-bottom: 30px;
-      filter: drop-shadow(0 0 10px var(--secondary-color));
+      width: 120px;
+      height: auto;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     }
 
     #template-heading {
       font-size: 72px;
-      margin: 0 0 20px;
-      text-shadow: 0 0 10px var(--secondary-color);
+      margin: 0 0 30px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      color: var(--secondary-color);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     #template-subheading {
       font-size: 24px;
-      max-width: 80%;
-      margin: 0 auto;
-      line-height: 1.4;
-      text-shadow: 0 0 5px var(--secondary-color);
+      line-height: 1.5;
+      margin: 0;
+      color: var(--secondary-color);
+      opacity: 0.85;
+      font-weight: 600;
+    }
+
+    .hud-element {
+      position: absolute;
+      border: 1px solid var(--secondary-color);
+      opacity: 0.3;
+    }
+
+    .hud-top-left {
+      top: 20px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
+      border-top: 2px solid var(--secondary-color);
+      border-left: 2px solid var(--secondary-color);
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .hud-top-right {
+      top: 20px;
+      right: 20px;
+      width: 100px;
+      height: 100px;
+      border-top: 2px solid var(--secondary-color);
+      border-right: 2px solid var(--secondary-color);
+      border-left: none;
+      border-bottom: none;
+    }
+
+    .hud-bottom-left {
+      bottom: 20px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
+      border-bottom: 2px solid var(--secondary-color);
+      border-left: 2px solid var(--secondary-color);
+      border-right: none;
+      border-top: none;
+    }
+
+    .hud-bottom-right {
+      bottom: 20px;
+      right: 20px;
+      width: 100px;
+      height: 100px;
+      border-bottom: 2px solid var(--secondary-color);
+      border-right: 2px solid var(--secondary-color);
+      border-left: none;
+      border-top: none;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="hologram"></div>
+    <div class="grid"></div>
+    <div class="scan-line"></div>
     <div class="content">
-      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Avatar"
-        id="template-logo"
-        width="100px"
-        >
+      <div class="hud-element hud-top-left"></div>
+      <div class="hud-element hud-top-right"></div>
+      <div class="hud-element hud-bottom-left"></div>
+      <div class="hud-element hud-bottom-right"></div>
+      <img src="https://res.cloudinary.com/diroilukd/image/upload/v1719141069/icon_qaomjk.png" alt="Logo" id="template-logo">
       <h1 id="template-heading">OG Image Generator</h1>
-      <p id="template-subheading">Create attractive OG images using Pictify.io API.
-        <br>
-        Perfect for developers to generate images from HTML at scale with ease.
-      </p>
+      <p id="template-subheading">Create stunning social media cards with our powerful API. Transform your content into
+        engaging visual experiences.</p>
     </div>
   </div>
 </body>

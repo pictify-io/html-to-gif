@@ -14,6 +14,10 @@ const templateSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ['og-image', 'custom'],
+  },
   html: {
     type: String,
     required: true,
