@@ -80,6 +80,51 @@ const createImageHandler = async (req, res) => {
   })
 }
 
+const ogImageHandler = async (req, res) => {
+  const { user } = req
+  const { template: templateUid, heading, description, logo } = req.body;
+  const template = await Template.findOne({ uid: templateUid });
+  if (!template) {
+    return res.status(404).send({ error: 'Template not found' });
+  }
+  const html = await template.populateOgImage({ heading, description, logo });
+  let page
+  let image
+  try {
+    page = await acquirePage()
+    const { url: imageLink, metadata } = await captureImages({ html, width: 1200, height: 630, selector: 'body', page });
+    image = { url: imageLink, ...metadata };
+  } catch (err) {
+    console.error('Error in image capture:', err);
+    return res.status(500).send({ error: 'Image generation failed', details: err.message });
+  } finally {
+    if (page) {
+      await releasePage(page)
+    }
+  }
+
+  if (!image) {
+    return res.status(500).send({ error: 'Something went wrong' })
+  }
+
+  image = await Image.create({
+    url: image.url,
+    html,
+    width: image.width,
+    height: image.height,
+    createdBy: user._id,
+  })
+
+  user.usage.count += 1
+  await user.save()
+
+  return res.send({
+    url: image.url,
+    id: image.uid,
+    createdAt: image.createdAt,
+  });
+}
+
 const getUserImagesHandler = async (req, res) => {
   const { user } = req
   let { limit, offset } = req.query
@@ -122,6 +167,9 @@ const createPublicImageHandler = async (req, res) => {
   const { html, url, width, height, selector, fileExtension } = req.body;
   const allowedOrigins = ['https://pictify.io', 'https://www.pictify.io'];
   const origin = req.headers['origin'];
+  if (!allowedOrigins.includes(origin)) {
+    return res.status(403).send({ error: 'Forbidden' });
+  }
  let image
   let page
   try {
@@ -207,6 +255,7 @@ module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
     fastify.register(verifyApiToken)
     fastify.post('/', createImageHandler)
+    fastify.post('/og-image', ogImageHandler)
   })
 
 

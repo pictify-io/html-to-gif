@@ -115,9 +115,7 @@ userSchema.methods.hasExceededMonthlyLimit = function () {
 userSchema.methods.getPlanDetails = function () {
   const user = this
   const plan = convertPlanToSlug(user.currentPlan)
-  console.log('plan', plan)
   const monthlyLimit = getRequestLimit(plan)
-  console.log('monthlyLimit', monthlyLimit)
   const hasExceededMonthlyLimit = user.hasExceededMonthlyLimit()
   const usage = user.usage.count
   const nextReset = user.usage.lastReset + 30 * 24 * 60 * 60 * 1000

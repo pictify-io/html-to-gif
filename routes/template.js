@@ -184,6 +184,7 @@ const getTemplatesForType = async (req, res) => {
   const { user } = req
   const { type } = req.params
   const templates = await Template.find({ type, createdBy: user._id })
+    .select('uid html name type width height createdAt createdBy')
   return res.send({ templates })
 }
 
