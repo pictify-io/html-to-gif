@@ -1,5 +1,6 @@
 const { acquirePage, releasePage } = require('../service/browserpool')
 const captureImages = require('../lib/image')
+const { takeScreenshot } = require('../lib/agent-screenshot')
 const verifyApiToken = require('../plugins/verify_api_token')
 const decorateUser = require('../plugins/decorate_user')
 const getRenderedHTML = require('../lib/page-content')
@@ -250,12 +251,69 @@ const healthCheckHandler = async (req, res) => {
   }
 };
 
+const agentScreenshotHandler = async (req, res) => {
+  const { user } = req
+  const { prompt } = req.body
+
+  if (!prompt) {
+    return res.status(400).send({ error: 'Prompt is required' })
+  }
+
+  let result
+  try {
+    const startTime = Date.now()
+    result = await takeScreenshot(prompt)
+    const endTime = Date.now()
+
+    if (!result.success) {
+      return res.status(500).send({
+        error: 'Screenshot generation failed',
+        details: result.error
+      })
+    }
+
+    // Save the image to database
+    const image = await Image.create({
+      uid: result.screenshot.metadata.uid,
+      url: result.screenshot.url,
+      html: '', // No HTML for agent screenshots
+      width: result.screenshot.metadata.width,
+      height: result.screenshot.metadata.height,
+      createdBy: user._id,
+    })
+
+    // Update user usage
+    user.usage.count += 1
+    await user.save()
+
+    return res.send({
+      url: result.screenshot.url,
+      id: result.screenshot.metadata.uid,
+      createdAt: image.createdAt,
+      metadata: {
+        prompt,
+        url: result.metadata.url,
+        elementDescription: result.metadata.elementDescription,
+        selector: result.metadata.selector,
+        executionTime: endTime - startTime
+      }
+    })
+  } catch (error) {
+    console.error('Error in agent screenshot:', error)
+    return res.status(500).send({
+      error: 'Agent screenshot failed',
+      details: error.message
+    })
+  }
+};
+
 
 module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
     fastify.register(verifyApiToken)
     fastify.post('/', createImageHandler)
     fastify.post('/og-image', ogImageHandler)
+    fastify.post('/agent-screenshot', agentScreenshotHandler)
   })
 
 
