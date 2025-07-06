@@ -15,7 +15,7 @@ const MAX_PAGE_REUSE = 50; // Maximum times a page can be reused before recyclin
 
 // Browser configuration
 const browserConfig = {
-  headless: 'new',
+  headless: false,
   args: [
     '--disable-background-networking',
     '--disable-background-timer-throttling',
