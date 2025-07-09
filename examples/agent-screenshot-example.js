@@ -1,34 +1,72 @@
-const dotenv = require('dotenv');
-dotenv.config();
+const axios = require('axios');
 
-const { takeScreenshot } = require('../lib/agent-screenshot');
-const { initializeBrowserPool, cleanup } = require('../service/browserpool');
+// Example of using the agent screenshot endpoint
+async function testAgentScreenshot() {
+  try {
+    // Configuration
+    const API_BASE_URL = 'http://localhost:3000'; // Adjust this to your server URL
+    const API_TOKEN = 'your-api-token'; // Replace with your actual API token
 
-async function runExamples() {
-  console.log('🚀 Initializing browser pool...');
-  await initializeBrowserPool();
-  
-  console.log('🤖 Running ReAct agent screenshot examples...\n');
-  console.log('🎯 This demo showcases how ReAct agents can reason, navigate, and capture screenshots!\n');
+    // Test prompt
+    const prompt = "Take a screenshot of the pricing section on slack.com";
 
-  // Example 1: Direct website screenshot
-  console.log('Example 1: Direct website screenshot (ReAct navigation)');
-  const result1 = await takeScreenshot('Give me screenshot of ticker chart of Nvidia from google finance');
-  if (result1.success) {
-    console.log(`✅ Agent navigated to: ${result1.metadata.url}`);
-    console.log(`📸 Screenshot: ${result1.screenshot.url}`);
-  } else {
-    console.log('❌ Error:', result1.error);
+    console.log('🚀 Testing agent screenshot endpoint...');
+    console.log('Prompt:', prompt);
+
+    const response = await axios.post(`${API_BASE_URL}/image/agent-screenshot`, {
+      prompt: prompt
+    }, {
+      headers: {
+        'Authorization': `Bearer ${API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 120000 // 2 minutes timeout for complex screenshots
+    });
+
+    console.log('✅ Success! Response:', {
+      url: response.data.url,
+      id: response.data.id,
+      createdAt: response.data.createdAt,
+      metadata: response.data.metadata
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error:', error.response?.data || error.message);
+    throw error;
   }
-  console.log('---\n');
-
-  await cleanup();
-  console.log('✅ Examples completed and cleaned up');
-  console.log('🚀 The ReAct agent successfully demonstrated intelligent reasoning, navigation, and screenshot capture!');
 }
 
+// Example of testing multiple prompts
+async function testMultiplePrompts() {
+  const prompts = [
+    "Take a screenshot of the hero section on slack.com",
+    "Take a screenshot of the pricing table on github.com/pricing",
+    "Take a screenshot of the navigation menu on stripe.com",
+    "Take a screenshot of the features section on vercel.com"
+  ];
+
+  console.log('🧪 Testing multiple prompts...');
+
+  for (const prompt of prompts) {
+    try {
+      console.log(`\n📝 Testing: "${prompt}"`);
+      const result = await testAgentScreenshot();
+      console.log(`✅ Screenshot saved: ${result.url}`);
+    } catch (error) {
+      console.error(`❌ Failed for prompt: "${prompt}"`);
+    }
+  }
+}
+
+// Run the test
 if (require.main === module) {
-  runExamples().catch(console.error);
+  testAgentScreenshot()
+    .then(() => console.log('✅ Test completed successfully'))
+    .catch(error => {
+      console.error('❌ Test failed:', error);
+      process.exit(1);
+    });
 }
 
-module.exports = { runExamples }; 
+module.exports = { testAgentScreenshot, testMultiplePrompts }; 

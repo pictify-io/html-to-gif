@@ -1,7 +1,8 @@
 const { acquirePage, releasePage } = require('../service/browserpool')
 const captureImages = require('../lib/image')
-const { takeScreenshot } = require('../lib/agent-screenshot')
+const { takeScreenshot, takeScreenshotStream } = require('../lib/agent-screenshot')
 const verifyApiToken = require('../plugins/verify_api_token')
+const verifyApiTokenFlexible = require('../plugins/verify_api_token_flexible')
 const decorateUser = require('../plugins/decorate_user')
 const getRenderedHTML = require('../lib/page-content')
 const Image = require('../models/Image')
@@ -272,13 +273,17 @@ const agentScreenshotHandler = async (req, res) => {
       })
     }
 
+    // Extract screenshot data with proper fallbacks
+    const screenshotData = result.screenshot || {}
+    const screenshotMetadata = screenshotData.metadata || screenshotData || {}
+
+
     // Save the image to database
     const image = await Image.create({
-      uid: result.screenshot.metadata.uid,
-      url: result.screenshot.url,
+      url: screenshotData.url || result.screenshot?.url,
       html: '', // No HTML for agent screenshots
-      width: result.screenshot.metadata.width,
-      height: result.screenshot.metadata.height,
+      width: screenshotMetadata.width || screenshotData.width || 1280,
+      height: screenshotMetadata.height || screenshotData.height || 720,
       createdBy: user._id,
     })
 
@@ -287,14 +292,14 @@ const agentScreenshotHandler = async (req, res) => {
     await user.save()
 
     return res.send({
-      url: result.screenshot.url,
-      id: result.screenshot.metadata.uid,
+      url: screenshotData.url || result.screenshot?.url,
+      id: image.uid,
       createdAt: image.createdAt,
       metadata: {
         prompt,
-        url: result.metadata.url,
-        elementDescription: result.metadata.elementDescription,
-        selector: result.metadata.selector,
+        url: result.metadata?.url || 'unknown',
+        elementDescription: result.metadata?.elementDescription,
+        selector: result.metadata?.selector,
         executionTime: endTime - startTime
       }
     })
@@ -307,6 +312,130 @@ const agentScreenshotHandler = async (req, res) => {
   }
 };
 
+const agentScreenshotStreamHandler = async (req, reply) => {
+  const { user } = req
+  const { prompt } = req.body
+
+  if (!prompt) {
+    return reply.status(400).send({ error: 'Prompt is required' })
+  }
+
+  // Hijack the response to handle it manually
+  reply.hijack()
+
+  // Get the raw response object
+  const res = reply.raw
+
+  // Set up CORS headers first
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+
+  // Set up SSE headers
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+
+  // Write headers
+  res.writeHead(200)
+
+  // Send initial connection message
+  res.write('data: {"type":"connected","data":{"message":"Connected to agent screenshot stream"}}\n\n')
+
+  let savedImage = null
+  let finalResult = null
+
+  // SSE callback function
+  const sseCallback = (event) => {
+    try {
+      const sseData = JSON.stringify(event)
+      res.write(`data: ${sseData}\n\n`)
+
+      // If this is the completion event, save the image
+      if (event.type === 'complete' && event.data && event.data.result) {
+        finalResult = event.data.result
+      }
+    } catch (error) {
+      console.error('Error writing SSE data:', error)
+    }
+  }
+
+  // Handle client disconnect
+  req.raw.on('close', () => {
+    console.log('Client disconnected from agent screenshot stream')
+    res.end()
+  })
+
+  req.raw.on('error', (error) => {
+    console.error('Request error in agent screenshot stream:', error)
+    res.end()
+  })
+
+  try {
+    // Start the streaming screenshot process
+    const result = await takeScreenshotStream(prompt, sseCallback)
+
+    if (result && result.success && result.screenshot) {
+      // Extract screenshot data with proper fallbacks
+      const screenshotData = result.screenshot || {}
+      const screenshotMetadata = screenshotData.metadata || screenshotData || {}
+
+      // Save the image to database
+      savedImage = await Image.create({
+        url: screenshotData.url || result.screenshot?.url,
+        html: '', // No HTML for agent screenshots
+        width: screenshotMetadata.width || screenshotData.width || 1280,
+        height: screenshotMetadata.height || screenshotData.height || 720,
+        createdBy: user._id,
+      })
+
+      // Update user usage
+      user.usage.count += 1
+      await user.save()
+
+      // Send final success message with database info
+      const finalMessage = {
+        type: 'saved',
+        data: {
+          step: 'saved',
+          message: 'Screenshot saved to database',
+          url: screenshotData.url || result.screenshot?.url,
+          id: savedImage.uid,
+          createdAt: savedImage.createdAt,
+          metadata: {
+            prompt,
+            url: result.metadata?.url || 'unknown',
+            elementDescription: result.metadata?.elementDescription,
+            selector: result.metadata?.selector,
+            executionTime: result.metadata?.executionTime
+          },
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      res.write(`data: ${JSON.stringify(finalMessage)}\n\n`)
+    }
+  } catch (error) {
+    console.error('Error in agent screenshot stream:', error)
+
+    // Send error event
+    const errorMessage = {
+      type: 'error',
+      data: {
+        step: 'error',
+        message: 'Screenshot stream failed',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      }
+    }
+
+    res.write(`data: ${JSON.stringify(errorMessage)}\n\n`)
+  } finally {
+    // Close the stream
+    res.end()
+  }
+};
+
 
 module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
@@ -314,6 +443,25 @@ module.exports = async (fastify) => {
     fastify.post('/', createImageHandler)
     fastify.post('/og-image', ogImageHandler)
     fastify.post('/agent-screenshot', agentScreenshotHandler)
+  })
+
+  // Handle OPTIONS preflight for SSE endpoint (no auth required)
+  fastify.register(async (fastify) => {
+    fastify.options('/agent-screenshot-stream', async (request, reply) => {
+      return reply
+        .header('Access-Control-Allow-Origin', '*')
+        .header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        .header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        .header('Access-Control-Max-Age', '86400')
+        .code(204)
+        .send()
+    })
+  })
+
+  // SSE endpoint with authentication
+  fastify.register(async (fastify) => {
+    fastify.register(verifyApiTokenFlexible)
+    fastify.post('/agent-screenshot-stream', agentScreenshotStreamHandler)
   })
 
 
