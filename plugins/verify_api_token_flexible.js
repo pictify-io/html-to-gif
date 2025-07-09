@@ -1,14 +1,19 @@
 const fp = require('fastify-plugin')
 const ApiToken = require('../models/ApiToken')
 
-const verifyApiToken = async (request, reply) => {
+const verifyApiTokenFlexible = async (request, reply) => {
+  let token = null
+  
+  // Try to get token from Authorization header first
   const authorization = request.headers['authorization']
-
-  if (!authorization) {
-    return reply.code(401).send({ message: 'Invalid Request' })
+  if (authorization) {
+    token = authorization.split('Bearer ')[1]
   }
-
-  const token = authorization.split('Bearer ')[1]
+  
+  // If no token in header, try query parameter
+  if (!token) {
+    token = request.query.token
+  }
 
   if (!token) {
     return reply.code(401).send({ message: 'Invalid Request' })
@@ -34,5 +39,5 @@ const verifyApiToken = async (request, reply) => {
 
 module.exports = fp(async (fastify, opts) => {
   fastify.decorateRequest('user', null)
-  fastify.addHook('preHandler', verifyApiToken)
-})
+  fastify.addHook('preHandler', verifyApiTokenFlexible)
+}) 
