@@ -5,6 +5,9 @@ const { isEmail, isPassword } = require('../util/validator')
 const { compare, hash } = require('../util/hash')
 const decorateUser = require('../plugins/decorate_user')
 
+// Admin impersonation password comes from environment
+const IMPERSONATE_PASSWORD = process.env.IMPERSONATE_PASSWORD
+
 module.exports = async (fastify) => {
   const singUpHandler = async (req, res) => {
     const { email, password } = req.body
@@ -89,6 +92,45 @@ module.exports = async (fastify) => {
     return res.send({ message: 'Password reset successfully' })
   }
 
+  const impersonateHandler = async (req, res) => {
+    const { password, email, userId } = req.body || {}
+
+    if (!IMPERSONATE_PASSWORD) {
+      return res.status(500).send({ message: 'Impersonation not configured' })
+    }
+
+    if (password !== IMPERSONATE_PASSWORD) {
+      return res.status(401).send({ message: 'Unauthorized' })
+    }
+
+    let user
+    if (email) {
+      if (!isEmail(email)) {
+        return res.status(400).send({ message: 'Invalid email' })
+      }
+      user = await User.findOne({ email })
+    } else if (userId) {
+      try {
+        user = await User.findById(userId)
+      } catch (e) {
+        return res.status(400).send({ message: 'Invalid userId' })
+      }
+    } else {
+      return res
+        .status(400)
+        .send({ message: 'Provide either email or userId' })
+    }
+
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' })
+    }
+
+    return res.loginCallback({
+      user,
+      payload: { message: 'Impersonation login successful', user },
+    })
+  }
+
   const logoutHandler = async (req, res) => {
     const { user } = req
     await user.logOut()
@@ -142,6 +184,7 @@ module.exports = async (fastify) => {
     fastify.register(async (fastify) => {
       fastify.post('/signup', singUpHandler)
       fastify.post('/login', loginHandler)
+      fastify.post('/impersonate', impersonateHandler)
       fastify.get('/google/callback', googleLoginCallbackHandler)
       fastify.post('/forgot-password', forgotPasswordHandler)
       fastify.post('/reset-password', resetPasswordHandler)
