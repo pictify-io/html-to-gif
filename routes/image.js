@@ -167,7 +167,7 @@ const getImageHandler = async (req, res) => {
 
 const createPublicImageHandler = async (req, res) => {
   const { html, url, width, height, selector, fileExtension } = req.body;
-  const allowedOrigins = ['https://pictify.io', 'https://www.pictify.io'];
+  const allowedOrigins = ['https://pictify.io', 'https://www.pictify.io', 'http://localhost:5173'];
   const origin = req.headers['origin'];
   if (!allowedOrigins.includes(origin)) {
     return res.status(403).send({ error: 'Forbidden' });
