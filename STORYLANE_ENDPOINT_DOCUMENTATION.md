@@ -84,6 +84,10 @@ curl -X POST https://api.pictify.io/gif/storylane \
 
 ---
 
+# Example Output
+
+[https://media.pictify.io/tqcpt-1759787965482.gif](https://media.pictify.io/tqcpt-1759787965482.gif)
+
 ## Error Responses
 
 | Status | Error Example | Description |
