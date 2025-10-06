@@ -31,6 +31,12 @@ const gifSchema = new mongoose.Schema({
   animationLength: {
     type: Number,
   },
+  timeCompressionFactor: {
+    type: Number,
+  },
+  frameDurationSeconds: {
+    type: Number,
+  },
   createdBy: {
     type: String,
     required: true,

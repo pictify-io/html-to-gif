@@ -1,19 +1,27 @@
 const puppeteer = require('puppeteer')
 const genericPool = require('generic-pool')
 
-// Constants
-const MAX_BROWSERS = 3;
-const MIN_BROWSERS = 1;
-const MAX_PAGES_PER_BROWSER = 10;
+// Constants - Optimized for AWS t3.medium (2 vCPU, 4GB RAM) for 40k+ GIFs/month
+const MAX_BROWSERS = 3; // Tuned for 4GB RAM (each browser ~500MB-1GB)
+const MIN_BROWSERS = 1; // Conservative for t3.medium
+const MAX_PAGES_PER_BROWSER = 8; // Reduced from 10 for memory constraints
 const BROWSER_TIMEOUT = 30000;
 const BROWSER_HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 const MAX_BROWSER_IDLE_TIME = 300000; // 5 minutes
 const MAX_BROWSER_ACQUISITION_TIME = 120000; // 2 minutes
 const MAX_PAGE_REUSE = 50; // Maximum times a page can be reused before recycling
 
+// Instance configuration (AWS t3.medium)
+const INSTANCE_SPECS = {
+  type: 't3.medium',
+  vCPUs: 2,
+  ramGB: 4,
+  maxConcurrent: MAX_BROWSERS * MAX_PAGES_PER_BROWSER, // 24 concurrent pages
+};
+
 // Browser configuration
 const browserConfig = {
-  headless: 'new',
+  headless: "new",
   args: [
     '--disable-background-networking',
     '--disable-background-timer-throttling',
@@ -438,6 +446,9 @@ class PagePool {
     if (!this.pool) {
       throw new Error('Page pool not initialized');
     }
+
+    await this.resetPage(page);
+
     this.pageAcquisitionTimes.delete(page);
     this.pageLastUsed.set(page, Date.now());
 
@@ -448,6 +459,66 @@ class PagePool {
     }
 
     await this.pool.release(page);
+  }
+
+  async resetPage(page) {
+    if (!page || page.isClosed()) {
+      return;
+    }
+
+    try {
+      // Remove custom request interception handlers to avoid leaks
+      if (page.listenerCount && page.listenerCount('request') > 0) {
+        page.removeAllListeners('request');
+        try {
+          await page.setRequestInterception(false);
+        } catch (err) {
+          console.error('Error disabling request interception:', err);
+        }
+      }
+
+      // Optimized: Use Promise.race with timeout to prevent hanging
+      await Promise.race([
+        // Stop ongoing timers/animations and clean injected helpers
+        page.evaluate(() => {
+          if (typeof window.stop === 'function') {
+            window.stop();
+          }
+          if (window.__enterpriseTiming) {
+            try {
+              window.__enterpriseTiming.reset?.();
+            } catch (err) {
+              console.error('Error resetting enterprise timing:', err);
+            }
+          }
+          if (window.__enterpriseCaptureHandler) {
+            window.removeEventListener('message', window.__enterpriseCaptureHandler);
+            delete window.__enterpriseCaptureHandler;
+          }
+          delete window.__enterpriseCaptureSelector;
+        }).catch(() => { }),
+        new Promise((resolve) => setTimeout(resolve, 1000)) // 1 second timeout
+      ]);
+
+      // Optimized: Navigate to about:blank with shorter timeout
+      await Promise.race([
+        page.goto('about:blank', {
+          waitUntil: 'domcontentloaded',
+          timeout: 1500, // Reduced from 2000ms
+        }),
+        new Promise((resolve) => setTimeout(resolve, 1500))
+      ]).catch(async (err) => {
+        console.error('Error navigating page to about:blank:', err);
+        try {
+          const session = await page.target().createCDPSession();
+          await session.send('Page.stopLoading');
+        } catch (stopErr) {
+          console.error('Error stopping page load:', stopErr);
+        }
+      });
+    } catch (error) {
+      console.error('Error resetting page before release:', error);
+    }
   }
 
   async performHealthCheck() {
