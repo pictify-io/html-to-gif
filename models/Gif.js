@@ -37,6 +37,11 @@ const gifSchema = new mongoose.Schema({
   frameDurationSeconds: {
     type: Number,
   },
+  quality: {
+    type: String,
+    enum: ['low', 'medium', 'high'],
+    default: 'medium',
+  },
   createdBy: {
     type: String,
     required: true,

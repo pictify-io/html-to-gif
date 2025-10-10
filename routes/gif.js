@@ -7,8 +7,7 @@ const Gif = require('../models/Gif')
 const Template = require('../models/Template')
 
 const rateLimit = require('@fastify/rate-limit')
-const { createGifFromEvents } = require('../lib/gif')
-const { NoFramesCapturedError } = require('../lib/gif')
+const { createGifFromEvents, NoFramesCapturedError, resolveQualityPreset } = require('../lib/gif')
 
 const createGifHandler = async (req, res) => {
   const startTime = Date.now()
@@ -20,8 +19,6 @@ const createGifHandler = async (req, res) => {
     width,
     height,
     template: templateUid,
-    framesPerSecond,
-    selector,
   } = req.body
 
   let { html } = req.body
@@ -46,8 +43,6 @@ const createGifHandler = async (req, res) => {
       url,
       width,
       height,
-      framesPerSecond,
-      selector,
       page,
     })
     gif = {
@@ -74,7 +69,6 @@ const createGifHandler = async (req, res) => {
     html,
     width: gif.width,
     height: gif.height,
-    framesPerSecond: gif.framesPerSecond,
     animationLength: gif.animationLength,
     createdBy: user._id,
   })
@@ -116,7 +110,7 @@ const getGifHandler = async (req, res) => {
 }
 
 const createPublicGifHandler = async (req, res) => {
-  const { html, url, width, height, framesPerSecond } = req.body
+  const { html, url, width, height } = req.body
   let gif
   let page
   try {
@@ -126,7 +120,6 @@ const createPublicGifHandler = async (req, res) => {
       url,
       width,
       height,
-      framesPerSecond,
       page,
     })
     gif = {
@@ -164,20 +157,26 @@ const createPublicGifHandler = async (req, res) => {
 const createEnterpriseGifHandler = async (req, res) => {
   const startTime = Date.now()
   const { user } = req
-  if (user.id !== process.env.STORYLANE_USER_ID) {
-    return res.status(403).send({ error: 'Forbidden' })
-  }
+  // if (user.id !== process.env.STORYLANE_USER_ID) {
+  //   return res.status(403).send({ error: 'Forbidden' })
+  // }
   const {
     url,
     width,
     height,
-    framesPerSecond,
-    selector,
     frameDurationSeconds,
+    quality,
   } = req.body
 
   if (!url) {
     return res.status(400).send({ error: 'URL is required' })
+  }
+
+  try {
+    resolveQualityPreset(quality)
+  } catch (err) {
+    console.error('Invalid quality preset provided:', err)
+    return res.status(400).send({ error: err.message })
   }
 
   let parsedFrameDuration = Number(frameDurationSeconds)
@@ -192,12 +191,12 @@ const createEnterpriseGifHandler = async (req, res) => {
       url,
       width,
       height,
-      framesPerSecond,
       frameDurationSeconds: parsedFrameDuration,
-      selector,
       page,
+      quality,
       onCaptureComplete: async () => {
         if (page) {
+          console.log('Releasing page')
           await releasePage(page)
           page = null
         }
@@ -213,7 +212,11 @@ const createEnterpriseGifHandler = async (req, res) => {
       createdBy: user._id,
       timeCompressionFactor: metadata.timeCompressionFactor,
       frameDurationSeconds: metadata.frameDurationSeconds,
+      quality: metadata.quality,
     })
+
+    const responseGif = gif.toObject()
+    delete responseGif.timeCompressionFactor
 
     user.usage.count += 1.5
     await user.save()
@@ -222,7 +225,7 @@ const createEnterpriseGifHandler = async (req, res) => {
     console.log(`Enterprise GIF created in ${processingTime}ms - ${metadata.frameCount} frames`)
 
     return res.send({
-      gif,
+      gif: responseGif,
       metadata,
       _meta: { processingTime }
     })
@@ -275,7 +278,7 @@ module.exports = async (fastify) => {
   fastify.register(async (fastify) => {
     fastify.register(verifyApiToken)
     fastify.post('/', createGifHandler)
-    fastify.post('/storylane', createEnterpriseGifHandler)
+    fastify.post('/capture', createEnterpriseGifHandler)
   })
 
   fastify.register(async (fastify) => {

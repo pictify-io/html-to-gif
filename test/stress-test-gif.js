@@ -63,8 +63,9 @@ const testScenarios = {
 
 // Test Configuration
 const config = {
-  baseUrl: 'http://localhost:3000',
-  apiToken: process.env.API_TOKEN || 'your-test-token',
+  baseUrl: process.env.BASE_URL || 'http://localhost:3000', // Set via: export BASE_URL=https://your-production-url.com
+  apiToken: process.env.API_TOKEN || 'your-test-token', // REQUIRED - uses authenticated endpoint (not rate-limited /public)
+  isProduction: process.env.NODE_ENV === 'production', // Set via: export NODE_ENV=production
   
   // Test scenarios - Adjusted for t3.medium (2 vCPU, 4GB RAM)
   scenarios: [
@@ -97,10 +98,46 @@ const config = {
       concurrent: 3,
       totalRequests: 180,
       duration: 3600,
+    },
+    {
+      name: 'Extreme Load (20x Average) - t3.medium',
+      concurrent: 10,
+      totalRequests: 100,
+      duration: 300,
+    },
+    {
+      name: 'Burst Load (High Concurrency) - t3.medium',
+      concurrent: 15,
+      totalRequests: 150,
+      duration: 600,
+    },
+    {
+      name: 'Stress Test (Push Limits) - t3.medium',
+      concurrent: 20,
+      totalRequests: 200,
+      duration: 900,
+    },
+    {
+      name: 'Sustained Heavy (2 hours) - t3.medium',
+      concurrent: 5,
+      totalRequests: 360,
+      duration: 7200,
+    },
+    {
+      name: 'Maximum Stress (Find Breaking Point) - t3.medium',
+      concurrent: 25,
+      totalRequests: 250,
+      duration: 1200,
+    },
+    {
+      name: 'Production Realistic (300/hour) - t3.medium',
+      concurrent: 2,
+      totalRequests: 300,
+      duration: 3600,
     }
   ],
   
-  selectedScenario: 0, // Change this to test different scenarios
+  selectedScenario: 10, // Change this to test different scenarios (0-10)
   
   monitoringInterval: 2000,
   requestTimeout: 120000, // 2 minutes per request
@@ -133,6 +170,7 @@ const metrics = {
   },
   responseTimes: [],
   errors: {},
+  errorDetails: [], // Detailed information about each error
   startTime: null,
   endTime: null,
   resourceSnapshots: [],
@@ -141,6 +179,22 @@ const metrics = {
 // Monitor system resources
 async function monitorResources(serverPid) {
   try {
+    // For production (remote server), only show request stats
+    if (config.isProduction || !serverPid) {
+      console.log(`\n[${new Date().toISOString()}] Request Stats (Remote Server):`);
+      console.log(`  Requests: ${metrics.requests.successful}/${metrics.requests.total} successful`);
+      console.log(`  Failed: ${metrics.requests.failed}, Timeouts: ${metrics.requests.timeouts}`);
+
+      if (metrics.responseTimes.length > 0) {
+        const recent = metrics.responseTimes.slice(-10);
+        const avg = recent.reduce((a, b) => a + b, 0) / recent.length;
+        console.log(`  Avg Response Time (last 10): ${avg.toFixed(0)}ms`);
+      }
+
+      return true;
+    }
+
+    // For local testing, monitor full system resources
     const stats = await pidusage(serverPid);
     const totalMem = os.totalmem();
     const freeMem = os.freemem();
@@ -208,12 +262,13 @@ async function checkHealth() {
 }
 
 // Generate a single GIF
-async function generateGif(html, endpoint = 'public') {
+async function generateGif(html) {
   const startTime = Date.now();
   metrics.requests.total++;
 
   try {
-    const url = `${config.baseUrl}/gif/${endpoint}`;
+    // Always use authenticated endpoint (not /public which is rate limited)
+    const url = `${config.baseUrl}/gif`;
     const payload = {
       html,
       width: 800,
@@ -221,9 +276,9 @@ async function generateGif(html, endpoint = 'public') {
       framesPerSecond: 18,
     };
 
-    const headers = endpoint !== 'public' 
-      ? { 'Authorization': `Bearer ${config.apiToken}` }
-      : {};
+    const headers = {
+      'Authorization': `Bearer ${config.apiToken}`
+    };
 
     const response = await axios.post(url, payload, {
       headers,
@@ -242,6 +297,26 @@ async function generateGif(html, endpoint = 'public') {
   } catch (err) {
     const responseTime = Date.now() - startTime;
     
+    // Capture detailed error information
+    const errorDetail = {
+      requestNumber: metrics.requests.total,
+      timestamp: new Date().toISOString(),
+      error: err.message,
+      errorCode: err.code,
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      duration: responseTime,
+      url: err.config?.url,
+      method: err.config?.method,
+      responseData: err.response?.data ?
+        (typeof err.response.data === 'string' ? err.response.data.substring(0, 200) : JSON.stringify(err.response.data).substring(0, 200))
+        : null,
+      headers: err.response?.headers,
+    };
+
+    // Add to detailed error log
+    metrics.errorDetails.push(errorDetail);
+
     if (err.code === 'ECONNABORTED') {
       metrics.requests.timeouts++;
     } else {
@@ -255,6 +330,7 @@ async function generateGif(html, endpoint = 'public') {
       responseTime,
       error: err.message,
       status: err.response?.status,
+      errorDetail, // Include detailed error in return
     };
   }
 }
@@ -285,7 +361,13 @@ async function runConcurrentRequests(concurrent, total, html) {
       completed++;
       inFlight--;
       
-      console.log(`  [${completed}/${total}] ${result.success ? '✓' : '✗'} ${result.responseTime}ms${result.error ? ` - ${result.error}` : ''}`);
+      const statusInfo = result.status ? ` (${result.status})` : '';
+      console.log(`  [${completed}/${total}] ${result.success ? '✓' : '✗'} ${result.responseTime}ms${statusInfo}${result.error ? ` - ${result.error}` : ''}`);
+
+      // Log detailed error for important failures
+      if (!result.success && result.errorDetail) {
+        console.log(`      ↳ Request #${result.errorDetail.requestNumber} at ${result.errorDetail.timestamp}`);
+      }
       
       checkComplete();
       startNext();
@@ -385,17 +467,37 @@ function printReport(stats, scenario) {
   const capacityIcon = capacityMultiple >= 1 ? '✅' : '⚠️';
   console.log(`   ${capacityIcon} Capacity: ${capacityMultiple.toFixed(1)}x target`);
   
-  console.log('\n💻 Resource Usage:');
-  console.log(`   Avg CPU: ${stats.resources.avgCpu.toFixed(2)}%`);
-  console.log(`   Max CPU: ${stats.resources.maxCpu.toFixed(2)}%`);
-  console.log(`   Avg Memory: ${stats.resources.avgMemory.toFixed(2)} MB`);
-  console.log(`   Max Memory: ${stats.resources.maxMemory.toFixed(2)} MB`);
+  if (stats.resources.maxCpu > 0 || stats.resources.maxMemory > 0) {
+    console.log('\n💻 Resource Usage (Local Server):');
+    console.log(`   Avg CPU: ${stats.resources.avgCpu.toFixed(2)}%`);
+    console.log(`   Max CPU: ${stats.resources.maxCpu.toFixed(2)}%`);
+    console.log(`   Avg Memory: ${stats.resources.avgMemory.toFixed(2)} MB`);
+    console.log(`   Max Memory: ${stats.resources.maxMemory.toFixed(2)} MB`);
+  } else {
+    console.log('\n💻 Resource Usage: Not available (remote server)');
+  }
   
   if (Object.keys(stats.errors).length > 0) {
     console.log('\n❌ Errors:');
     Object.entries(stats.errors).forEach(([type, count]) => {
       console.log(`   ${type}: ${count}`);
     });
+
+    // Show detailed error information
+    if (metrics.errorDetails && metrics.errorDetails.length > 0) {
+      console.log('\n📋 Detailed Error Log:');
+      metrics.errorDetails.forEach((err, index) => {
+        console.log(`\n   Error #${index + 1}:`);
+        console.log(`   ├─ Request: #${err.requestNumber}`);
+        console.log(`   ├─ Time: ${err.timestamp}`);
+        console.log(`   ├─ Status: ${err.status || err.errorCode || 'N/A'} ${err.statusText || ''}`);
+        console.log(`   ├─ Duration: ${err.duration}ms`);
+        console.log(`   ├─ Error: ${err.error}`);
+        if (err.responseData) {
+          console.log(`   └─ Response: ${err.responseData}`);
+        }
+      });
+    }
   }
   
   console.log('\n✅ Threshold Checks:');
@@ -414,21 +516,27 @@ function printReport(stats, scenario) {
       unit: 'ms',
       passed: stats.responseTimes.p95 <= config.thresholds.maxP95ResponseTime,
     },
-    {
-      name: 'Max CPU',
-      value: stats.resources.maxCpu,
-      threshold: config.thresholds.maxCpuPercent,
-      unit: '%',
-      passed: stats.resources.maxCpu <= config.thresholds.maxCpuPercent,
-    },
-    {
-      name: 'Max Memory',
-      value: stats.resources.maxMemory,
-      threshold: config.thresholds.maxMemoryMB,
-      unit: 'MB',
-      passed: stats.resources.maxMemory <= config.thresholds.maxMemoryMB,
-    },
   ];
+
+  // Only check resource thresholds if we have resource monitoring data
+  if (stats.resources.maxCpu > 0 || stats.resources.maxMemory > 0) {
+    checks.push(
+      {
+        name: 'Max CPU',
+        value: stats.resources.maxCpu,
+        threshold: config.thresholds.maxCpuPercent,
+        unit: '%',
+        passed: stats.resources.maxCpu <= config.thresholds.maxCpuPercent,
+      },
+      {
+        name: 'Max Memory',
+        value: stats.resources.maxMemory,
+        threshold: config.thresholds.maxMemoryMB,
+        unit: 'MB',
+        passed: stats.resources.maxMemory <= config.thresholds.maxMemoryMB,
+      }
+    );
+  }
   
   let allPassed = true;
   checks.forEach(check => {
@@ -447,15 +555,20 @@ function printReport(stats, scenario) {
 // Main stress test
 async function runStressTest() {
   console.log('🚀 Starting GIF Generation Stress Test\n');
+  console.log(`📡 Target: ${config.baseUrl}`);
+  console.log(`🌍 Mode: ${config.isProduction ? 'PRODUCTION (Remote)' : 'LOCAL'}\n`);
   
-  // Get server PID
+  // Get server PID (only for local testing)
   let serverPid;
-  try {
-    serverPid = parseInt(fs.readFileSync('server.pid', 'utf8'));
-    console.log(`📌 Monitoring server PID: ${serverPid}\n`);
-  } catch (err) {
-    console.error('❌ Could not read server.pid. Make sure the server is running.');
-    process.exit(1);
+  if (!config.isProduction) {
+    try {
+      serverPid = parseInt(fs.readFileSync('server.pid', 'utf8'));
+      console.log(`📌 Monitoring local server PID: ${serverPid}\n`);
+    } catch (err) {
+      console.warn('⚠️  Could not read server.pid. Resource monitoring will be limited.');
+    }
+  } else {
+    console.log('📌 Remote server - resource monitoring disabled\n');
   }
   
   // Check initial health
@@ -464,6 +577,18 @@ async function runStressTest() {
   
   // Get scenario
   const scenario = config.scenarios[config.selectedScenario];
+
+  // Validate scenario exists
+  if (!scenario) {
+    console.error(`\n❌ Error: Scenario ${config.selectedScenario} does not exist!`);
+    console.error(`Available scenarios: 0-${config.scenarios.length - 1}`);
+    console.error(`\nAvailable scenarios:`);
+    config.scenarios.forEach((s, i) => {
+      console.error(`  ${i}: ${s.name}`);
+    });
+    process.exit(1);
+  }
+
   console.log(`\n📋 Selected Scenario: ${scenario.name}`);
   console.log(`   Concurrent: ${scenario.concurrent}`);
   console.log(`   Total Requests: ${scenario.totalRequests}`);

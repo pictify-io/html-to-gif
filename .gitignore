@@ -1,7 +1,8 @@
 /node_modules
 /lib/ffmpeg.log
-/test/results-*.json
-.env
+/test/
+/auto-scripts/
 http://localhost:3001/api/auth/login/google
 html-to-gif.code-workspace
 http://localhost:3000/login/google
+.env

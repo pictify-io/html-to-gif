@@ -495,6 +495,8 @@ class PagePool {
             window.removeEventListener('message', window.__enterpriseCaptureHandler);
             delete window.__enterpriseCaptureHandler;
           }
+          delete window.enterpriseCaptureFrame;
+          delete window.enterpriseStopCapture;
           delete window.__enterpriseCaptureSelector;
         }).catch(() => { }),
         new Promise((resolve) => setTimeout(resolve, 1000)) // 1 second timeout
